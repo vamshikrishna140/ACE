@@ -6,7 +6,8 @@ from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 import numpy as np
 from ace_appworld import config
-from ace_appworld.components.reflector import ReflectionResult # Import dataclass
+from ace_appworld.components.models import CurationOperation, CurationResult, ReflectionResult
+from ace_appworld.components.prompts import get_curation_prompt
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -16,21 +17,6 @@ This file contains the Curator (which generates updates)
 and the PlaybookManager (which applies them).
 (Refactored from your `curator.py`)
 """
-
-@dataclass
-class CurationOperation:
-    """Single curation operation on playbook"""
-    type: str  # "ADD", "UPDATE", "DELETE"
-    section: str
-    bullet_id: Optional[str] = None
-    content: Optional[str] = None
-    reason: Optional[str] = None
-
-@dataclass
-class CurationResult:
-    """Result of curation process"""
-    reasoning: str
-    operations: List[CurationOperation]
 
 
 class Curator:
@@ -161,69 +147,11 @@ class Curator:
                               generated_code: Optional[str] = None) -> str:
         """Build curation prompt for playbook updates"""
         
-        prompt = """You are a master curator of knowledge. Your job is to identify what new insights should be added to an existing playbook based on a reflection from a previous attempt.
-
-**Context:**
-- The playbook will be used by an AI agent to solve similar tasks.
-- The reflection was generated using ground truth (which won't be available when using the playbook).
-- You must extract insights that help the agent align with the ground truth *without* revealing the answers (e.g., "The agent should use `apis.phone.search_contacts()` to find roommates" is GOOD. "The answer is 'John Smith'" is BAD).
-
-**Instructions:**
-1.  **Review Existing Playbook & Reflection:** Identify what *new, actionable* insights are *missing* from the playbook.
-2.  **Avoid Redundancy:** Do NOT add an insight if a similar one already exists. Only add complementary content.
-3.  **Be Specific:** Insights must be concise and actionable. "Check for errors" is bad. "After calling `apis.venmo.pay()`, check the 'error' field in the response" is good.
-4.  **Format Correctly:** Only provide ADD operations.
-
-**Available Sections:**
-- `strategies_and_hard_rules`: Core strategies and mandatory rules (e.g., "Always use `while True` for pagination").
-- `apis_to_use_for_specific_information`: API usage patterns and gotchas (e.g., "To get user emails, use `apis.supervisor.get_user_account()` not `apis.phone.search_contacts()`").
-- `common_mistakes`: Errors to avoid (e.g., "Do not assume `search_transactions` returns all items; check for `next_page` token").
-- `verification_checklist`: Validation steps (e.g., "Before completing, verify the total number of items processed matches the `total` field").
-- `domain_concepts`: Domain-specific knowledge (e.g., "A 'roommate' is defined in the `apis.phone.search_contacts()` app").
-- `code_patterns`: Reusable code snippets (e.g., "Pagination loop: `page=0; while True: ...`").
-
----
-
-**Task Context:**
-"""
-        prompt += f"{task_context}\n\n"
-        
-        prompt += "**Current Playbook (Sample):**\n"
-        if current_playbook:
-            for section, bullets in current_playbook.items():
-                if bullets:
-                    prompt += f"\n### {section}\n"
-                    for bullet in bullets[:5]:  # Show first 5 per section
-                        prompt += f"- [{bullet.get('id', '?')}] {bullet.get('content', '')}\n"
-        else:
-            prompt += "(Empty playbook)\n"
-        
-        prompt += f"""
-**Reflection Analysis:**
-- Error: {reflection.error_identification}
-- Root Cause: {reflection.root_cause_analysis}
-- Correct Approach: {reflection.correct_approach}
-- Key Insight: {reflection.key_insight}
-
----
-
-**Your Task:**
-Output ONLY a valid JSON object with these fields:
-- "reasoning": Your thought process on why you are adding/not-adding insights.
-- "operations": A list of operations (ONLY "ADD" type).
-
-**Response Format (no markdown, no code blocks):**
-{{
-    "reasoning": "[Your analysis of what's missing and why it should be added, or why nothing is new]",
-    "operations": [
-        {{
-            "type": "ADD",
-            "section": "common_mistakes",
-            "content": "[New strategy or rule based on the reflection's key insight]"
-        }}
-    ]
-}}
-"""
+        prompt = get_curation_prompt(
+            task_context=task_context,
+            current_playbook=current_playbook,
+            reflection=reflection
+        )
         return prompt
 
     def _parse_json_from_response(self, response: str) -> Dict:

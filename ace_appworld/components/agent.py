@@ -6,11 +6,9 @@ import time
 import logging
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
-
 from ace_appworld.components.models import Episode, Step
-from ace_appworld.components.prompts import get_generator_prompt
+from ace_appworld.components.prompts import get_generator_prompt, get_validation_prompt
 from ace_appworld import config
-
 # Setup logger
 logger = logging.getLogger(__name__)
 
@@ -336,66 +334,10 @@ class ReActAgent:
     
     def _build_validation_prompt(self, episode: Episode, ground_truth: Dict) -> str:
         """Build validation prompt for LLM-based trajectory validation"""
-        prompt = f"""You are a validation agent for task completion verification.
-
-**Task Instruction:**
-{episode.instruction}
-
-**Agent Execution Trajectory:**
-"""
-        
-        for i, step in enumerate(episode.steps, 1):
-            prompt += f"""
---- Step {i} ---
-Reasoning: {step.thought}
-
-Action:
-```python
-{step.action}
-```
-
-Observation: {step.observation}
-Success: {step.success}
-"""
-        
-        prompt += f"""
-**Final Answer:** {episode.final_answer if episode.final_answer else "No explicit answer provided"}
-
-**Ground Truth:**
-"""
-        
-        if ground_truth['answer'] is not None:
-            prompt += f"Expected Answer: {json.dumps(ground_truth['answer'], indent=2)}\n"
-        else:
-            prompt += "Expected Answer: Not explicitly specified\n"
-        
-        if ground_truth['private_data']:
-            prompt += f"\nValidation Data: {json.dumps(ground_truth['private_data'], indent=2)}\n"
-        
-        prompt += """
-**Validation Criteria:**
-1. Analyze each step in the trajectory to understand the agent's reasoning and actions
-2. Check if the sequence of actions logically accomplishes the task instruction
-3. Compare the final answer (if provided) with the ground truth
-4. If no explicit answer, verify that the actions successfully completed the task
-5. Consider semantic equivalence (e.g., "yes"/"true", date format variations, equivalent phrasings)
-6. Review observations to confirm correct data was retrieved or modified
-7. Check if the final action indicates task completion
-
-**Important Notes:**
-- Exact string matching is NOT required; focus on semantic correctness
-- The task may be completed through actions without an explicit answer
-- Consider the overall trajectory, not just the final answer
-- Verify that side effects (updates, deletions, creations) were properly executed
-
-**Response Format:**
-Respond with ONLY one of:
-- SUCCESS: [concise reason why the task was completed correctly]
-- FAILURE: [concise reason why the task was not completed or completed incorrectly]
-
-Be decisive and clear in your judgment.
-"""
-        
+        prompt = get_validation_prompt(
+            episode=episode,
+            ground_truth=ground_truth
+        )
         return prompt
     
     def _parse_validation_response(self, response: str) -> bool:

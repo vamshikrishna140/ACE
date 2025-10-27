@@ -1,10 +1,9 @@
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import List, Optional, Dict
 
 """
-This file contains the core data structures (dataclasses) used to represent
-task episodes and individual steps.
-(This file is unchanged from your original `models.py`)
+All data models for the ACE AppWorld system.
+Contains dataclasses representing episodes, steps, reflections, and curation operations.
 """
 
 @dataclass
@@ -27,3 +26,30 @@ class Episode:
     success: bool = False
     error: Optional[str] = None
 
+
+@dataclass
+class ReflectionResult:
+    """Result of reflection analysis"""
+    reasoning: str
+    error_identification: str
+    root_cause_analysis: str
+    correct_approach: str
+    key_insight: str
+    bullet_tags: Optional[List[Dict[str, str]]] = None
+
+
+@dataclass
+class CurationOperation:
+    """Single curation operation on playbook"""
+    type: str  # "ADD", "UPDATE", "DELETE"
+    section: str
+    bullet_id: Optional[str] = None
+    content: Optional[str] = None
+    reason: Optional[str] = None
+
+
+@dataclass
+class CurationResult:
+    """Result of curation process"""
+    reasoning: str
+    operations: List[CurationOperation]

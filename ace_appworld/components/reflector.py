@@ -3,8 +3,9 @@ import os
 import re
 import logging
 from typing import Dict, List, Optional, Tuple
-from dataclasses import dataclass
 from ace_appworld import config
+from ace_appworld.components.models import ReflectionResult
+from ace_appworld.components.prompts import get_reflection_prompt
 
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -13,17 +14,6 @@ logger = logging.getLogger(__name__)
 This file contains the Reflector agent (Critic).
 (Refactored from your `Reflector.py`)
 """
-
-@dataclass
-class ReflectionResult:
-    """Result of reflection analysis"""
-    reasoning: str
-    error_identification: str
-    root_cause_analysis: str
-    correct_approach: str
-    key_insight: str
-    bullet_tags: Optional[List[Dict[str, str]]] = None
-
 
 class Reflector:
     """
@@ -143,90 +133,14 @@ class Reflector:
         """
         Build reflection prompt for trajectory analysis (using paper's exact prompt)
         """
-        trajectory_json = json.dumps({
-            'task': task_instruction,
-            'steps': trajectory, # Already a list of dicts
-            'final_answer': final_answer
-        }, indent=2)
-        
-        ground_truth_code = ""
-        if ground_truth and ground_truth.get('code'):
-            ground_truth_code = ground_truth['code']
-        elif ground_truth and ground_truth.get('answer'):
-            ground_truth_code = f"# Expected answer: {ground_truth['answer']}"
-        
-        playbook_json = ""
-        if playbook_bullets:
-            playbook_sections = {}
-            for bullet in playbook_bullets:
-                section = bullet.get('section', 'general')
-                if section not in playbook_sections:
-                    playbook_sections[section] = []
-                playbook_sections[section].append(
-                    f"[{bullet['id']}] (helpful={bullet.get('helpful', 0)}, harmful={bullet.get('harmful', 0)}): {bullet['content']}"
-                )
-            
-            for section, bullets in playbook_sections.items():
-                playbook_json += f"\n## {section}\n"
-                for bullet in bullets:
-                    playbook_json += f"- {bullet}\n"
-        
-        # Build prompt using paper's format
-        prompt = f"""You are an expert AppWorld coding agent and educator. Your job is to diagnose the current trajectory: identify what went wrong (or could be better), grounded in execution feedback, API usage, unit test report, and ground truth when applicable.
-
-Instructions: 
-- Carefully analyze the model's reasoning trace to identify where it went wrong 
-- Take the environment feedback into account, comparing the predicted answer with the ground truth to understand the gap 
-- Identify specific conceptual errors, calculation mistakes, or misapplied strategies 
-- Provide actionable insights that could help the model avoid this mistake in the future 
-- Identify root causes: wrong source of truth, bad filters (timeframe/direction/identity), formatting issues, or missing authentication and how to correct them
-- Provide concrete, step-by-step corrections the model should take in this task
-- Be specific about what the model should have done differently 
-- You will receive bulletpoints that are part of playbook that's used by the generator to answer the question
-- You need to analyze these bulletpoints, and give the tag for each bulletpoint, tag can be ['helpful', 'harmful', 'neutral'] (for the generator to generate the correct answer) 
-- Explicitly curate from the environment feedback the output format/schema of APIs used when unclear or mismatched with expectations (e.g., apis.blah.show_contents() returns a list of content_ids (strings), not content objects)
-
-Inputs:
-
-Ground truth code (reference, known-correct):
-GROUND_TRUTH_CODE_START
-{ground_truth_code}
-GROUND_TRUTH_CODE_END
-
-Test report (unit tests result for the task after the generated code was run):
-TEST_REPORT_START
-{execution_feedback}
-TEST_REPORT_END
-
-ACE playbook (playbook that's used by model for code generation):
-PLAYBOOK_START
-{playbook_json}
-PLAYBOOK_END
-
-Examples:
-(Omitted for brevity, but this is where the paper's examples would go)
-
-Outputs: 
-Your output should be a json object, which contains the following fields:
-- reasoning: your chain of thought / reasoning / thinking process, detailed analysis and calculations 
-- error_identification: what specifically went wrong in the reasoning? 
-- root_cause_analysis: why did this error occur? What concept was misunderstood? 
-- correct_approach: what should the model have done instead? 
-- key_insight: what strategy, formula, or principle should be remembered to avoid this error?
-- bullet_tags: A list of dicts, e.g., [{{"id": "gen-00001", "tag": "helpful"}}, {{"id": "api-00002", "tag": "harmful"}}]
-
-Answer in this exact JSON format (no markdown code blocks):
-{{
-"reasoning": "[Your chain of thought / reasoning / thinking process, detailed analysis and calculations]",
-"error_identification": "[What specifically went wrong in the reasoning?]",
-"root_cause_analysis": "[Why did this error occur? What concept was misunderstood?]",
-"correct_approach": "[What should the model have done instead?]",
-"key_insight": "[What strategy, formula, or principle should be remembered to avoid this error?]",
-"bullet_tags": [{{"id": "[bullet_id_1]", "tag": "[helpful/harmful/neutral]"}}]
-}}
-
-[FULL AGENT-ENVIRONMENT TRAJECTORY]
-{trajectory_json}"""
+        prompt = get_reflection_prompt(
+            task_instruction=task_instruction,
+            trajectory=trajectory,
+            final_answer=final_answer,
+            ground_truth=ground_truth,
+            execution_feedback=execution_feedback,
+            playbook_bullets=playbook_bullets
+        )
         
         return prompt
     
