@@ -29,7 +29,7 @@ def run_online_loop(task_id: str):
     reflector = Reflector()
     
     # Instantiate agent once, we will update its playbook if needed
-    agent = ReActAgent(playbook_path=config.PLAYBOOK_PATH, use_playbook=True, enable_validation=False)
+    agent = ReActAgent(playbook_path=config.PLAYBOOK_PATH, use_playbook=True, enable_validation=True)
     
     for attempt in range(config.MAX_ONLINE_RETRIES):
         logger.info(f"--- Attempt {attempt + 1}/{config.MAX_ONLINE_RETRIES} for Task {task_id} ---")

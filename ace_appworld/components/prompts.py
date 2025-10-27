@@ -1,5 +1,6 @@
 import json
 from typing import Dict, List, Optional
+from ace_appworld.components.models import Episode
 
 """
 All prompt templates for the ACE AppWorld system.
@@ -235,44 +236,44 @@ Output ONLY a valid JSON object with these fields:
     return prompt
 
 
-def get_validation_prompt(episode_data: Dict, ground_truth: Dict) -> str:
+def get_validation_prompt(episode: Episode, ground_truth: Dict) -> str:
     """
     Build validation prompt for LLM-based trajectory validation
     """
     prompt = f"""You are a validation agent for task completion verification.
 
 **Task Instruction:**
-{episode_data.get('instruction', '')}
+{episode.instruction}
 
 **Agent Execution Trajectory:**
 """
     
-    for i, step in enumerate(episode_data.get('steps', []), 1):
+    for i, step in enumerate(episode.steps, 1):
         prompt += f"""
 --- Step {i} ---
-Reasoning: {step.get('thought', '')}
+Reasoning: {step.thought}
 
 Action:
 ```python
-{step.get('action', '')}
+{step.action}
 ```
 
-Observation: {step.get('observation', '')}
-Success: {step.get('success', False)}
+Observation: {step.observation}
+Success: {step.success}
 """
     
     prompt += f"""
-**Final Answer:** {episode_data.get('final_answer') if episode_data.get('final_answer') else "No explicit answer provided"}
+**Final Answer:** {episode.final_answer if episode.final_answer else "No explicit answer provided"}
 
 **Ground Truth:**
 """
     
-    if ground_truth.get('answer') is not None:
+    if ground_truth['answer'] is not None:
         prompt += f"Expected Answer: {json.dumps(ground_truth['answer'], indent=2)}\n"
     else:
         prompt += "Expected Answer: Not explicitly specified\n"
     
-    if ground_truth.get('private_data'):
+    if ground_truth['private_data']:
         prompt += f"\nValidation Data: {json.dumps(ground_truth['private_data'], indent=2)}\n"
     
     prompt += """
