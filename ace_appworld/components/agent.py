@@ -204,6 +204,7 @@ class ReActAgent:
         """Execute code in AppWorld environment with error handling"""
         try:
             output = world.execute(code)
+            
             if isinstance(output, str) and output.startswith("Execution failed"):
                 return output, False
             if output is None:
@@ -466,6 +467,10 @@ class ReActAgent:
                         episode.error = error_msg
                         break
                 
+
+                logger.info("Evaluation Output:")
+                logger.info(world.evaluate().report())
+
                 if len(episode.steps) == self.max_steps:
                     logger.warning(f"Max steps ({self.max_steps}) reached.")
                     episode.error = "Max steps reached"

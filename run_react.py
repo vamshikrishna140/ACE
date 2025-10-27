@@ -26,7 +26,7 @@ def run_single_task(task_id: str):
     logger.info(f"Running agent for task {task_id}...")
     episode = agent.run_episode(
         task_id=task_id,
-        experiment_name=f"single_run_{task_id}"
+        experiment_name=f"react_run"
     )
     
     # Check result

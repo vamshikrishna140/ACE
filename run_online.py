@@ -45,7 +45,7 @@ def run_online_loop(task_id: str):
         # 2. Run the Agent (Generate(t, P))
         episode = agent.run_episode(
             task_id=task_id,
-            experiment_name=f"online_attempt_{task_id}_{attempt+1}"
+            experiment_name=f"online_run"
         )
         
         # 3. Check for Success

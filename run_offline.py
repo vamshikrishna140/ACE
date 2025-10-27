@@ -62,7 +62,7 @@ def main():
         
         episode = agent.run_episode(
             task_id=task_id,
-            experiment_name=f"offline_run_{task_id}"
+            experiment_name=f"offline_run"
         )
         
         # Save the trace (episode)
