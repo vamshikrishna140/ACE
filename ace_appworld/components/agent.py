@@ -8,6 +8,7 @@ from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 from ace_appworld.components.models import Episode, Step
 from ace_appworld.components.prompts import get_generator_prompt, get_validation_prompt
+from ace_appworld.components.llm import LLM
 from ace_appworld import config
 # Setup logger
 logger = logging.getLogger(__name__)
@@ -28,26 +29,14 @@ class ReActAgent:
         self.model_provider = config.GENERATOR_PROVIDER
         self.model_name = config.GENERATOR_MODEL
         self.max_steps = config.MAX_EPISODE_STEPS
-        self.temperature = config.TEMPERATURE
-        self.max_tokens = config.MAX_TOKENS
         
         self.use_playbook = use_playbook
         self.max_playbook_bullets = max_playbook_bullets
         self.enable_validation = enable_validation
-        
-        # Initialize the appropriate client
-        if self.model_provider == "gemini":
-            self.api_key = config.GEMINI_API_KEY
-            self._init_gemini_client()
-        elif self.model_provider == "ollama":
-            self.api_key = config.OLLAMA_API_KEY
-            self._init_ollama_client()
-        elif self.model_provider == "openrouter":
-            self.api_key = config.OPENROUTER_API_KEY
-            self._init_openrouter_client()
-        else:
-            raise ValueError(f"Unknown model_provider in config: {self.model_provider}")
-            
+        self.model_provider = config.GENERATOR_PROVIDER
+
+        self.llm = LLM(model_name=self.model_name, model_provider=self.model_provider)
+
         # Load domain knowledge
         self.playbook = self._load_playbook(playbook_path) if use_playbook else ""
         
@@ -60,33 +49,6 @@ class ReActAgent:
         """Public method to reload the playbook from disk."""
         logger.info("Agent is reloading playbook...")
         self.playbook = self._load_playbook(playbook_path)
-
-    def _init_openrouter_client(self):
-        if not self.api_key:
-            raise ValueError("OpenRouter API key not set in .env or config.")
-        self.openrouter_url = "https://openrouter.ai/api/v1/chat/completions"
-        logger.debug("OpenRouter client configured")
-
-    def _init_gemini_client(self):
-        try:
-            from google import genai
-            from google.genai import types
-            if not self.api_key:
-                raise ValueError("Gemini API key not set in .env or config.")
-            os.environ["GOOGLE_API_KEY"] = self.api_key
-            self.gemini_client = genai.Client()
-            self.gemini_types = types
-            logger.debug("Gemini client initialized")
-        except ImportError:
-            logger.error("google-genai not installed. Run: uv pip install google-genai")
-            raise
-    
-    def _init_ollama_client(self):
-        self.api_key = self.api_key or config.OLLAMA_API_KEY
-        if not self.api_key:
-            raise ValueError("Ollama Cloud API key not set in .env or config.")
-        self.ollama_cloud_url = "https://ollama.com"
-        logger.debug("Ollama client configured")
         
     def _load_playbook(self, playbook_path: str) -> str:
         """Load and format domain knowledge playbook"""
@@ -250,59 +212,6 @@ class ReActAgent:
         except Exception as e:
             logger.error(f"Code execution error: {e}")
             return f"Execution error: {str(e)}", False
-    
-    def _call_llm(self, prompt: str) -> str:
-        """Call the configured LLM"""
-        try:
-            if self.model_provider == "gemini":
-                return self._call_gemini(prompt)
-            elif self.model_provider == "openrouter":
-                return self._call_openrouter(prompt)
-            elif self.model_provider == "ollama":
-                return self._call_ollama_cloud(prompt)
-            else:
-                raise ValueError(f"Provider {self.model_provider} not supported")
-        except Exception as e:
-            logger.error(f"LLM call failed: {e}", exc_info=True)
-            raise
-        
-    def _call_openrouter(self, prompt: str) -> str:
-        import requests
-        headers = {"Authorization": f"Bearer {self.api_key}", "Content-Type": "application/json"}
-        payload = {
-            "model": self.model_name,
-            "messages": [{"role": "user", "content": prompt}],
-            "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
-            "provider": {"sort": "price"}
-        }
-        response = requests.post(self.openrouter_url, headers=headers, json=payload, timeout=180)
-        response.raise_for_status()
-        data = response.json()
-        return data["choices"][0]["message"]["content"]
-    
-    def _call_gemini(self, prompt: str) -> str:
-        config_gemini = self.gemini_types.GenerateContentConfig(
-            temperature=self.temperature,
-            max_output_tokens=self.max_tokens
-        )
-        response = self.gemini_client.models.generate_content(
-            model=self.model_name,
-            contents=prompt,
-            config=config_gemini
-        )
-        return response.text
-    
-    def _call_ollama_cloud(self, prompt: str) -> str:
-        from ollama import Client
-        client = Client(host=self.ollama_cloud_url, headers={'Authorization': f'Bearer {self.api_key}'})
-        messages = [{"role": "user", "content": prompt}]
-        response = client.chat(
-            model=self.model_name,
-            messages=messages,
-            options={"temperature": self.temperature, "num_predict": self.max_tokens, "timeout": 180}
-        )
-        return response['message']['content']
 
     def _validate_trajectory(self, episode: Episode, ground_truth: Dict, verbose: bool = False) -> bool:
         """
@@ -317,8 +226,8 @@ class ReActAgent:
             
             if verbose:
                 logger.info("🔍 Validating trajectory with LLM...")
-            
-            response = self._call_llm(validation_prompt)
+
+            response = self.llm._call_llm(validation_prompt)
             is_valid = self._parse_validation_response(response)
             
             if verbose:
@@ -480,7 +389,7 @@ class ReActAgent:
                         )
                         
                         logger.debug("Generating thought and action...")
-                        response = self._call_llm(prompt)
+                        response = self.llm._call_llm(prompt)
                         logger.debug(f"LLM Response: {response[:300]}...")
                         
                         # 2. Extract and validate code

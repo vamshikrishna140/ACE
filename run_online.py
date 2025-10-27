@@ -10,7 +10,8 @@ logger = logging.getLogger(__name__)
 
 from ace_appworld.components.agent import ReActAgent
 from ace_appworld.components.reflector import Reflector
-from ace_appworld.components.curator import Curator, PlaybookManager
+from ace_appworld.components.curator import Curator 
+from ace_appworld.components.playbook import PlaybookManager
 from ace_appworld.components.models import Episode
 
 def run_online_loop(task_id: str):
