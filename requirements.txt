@@ -1,0 +1,7 @@
+appworld
+ollama
+requests
+
+numpy
+sentence-transformers
+python-dotenv

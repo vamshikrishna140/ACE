@@ -1,0 +1,1418 @@
+{
+  "strategies_and_hard_rules": [
+    {
+      "id": "str-00001",
+      "content": "When finding an item with a maximum metric value across a collection: (1) First retrieve ALL items in the collection (e.g., all playlists, then all songs within them), (2) Extract the relevant metric field from each item's API response, (3) Compare all values to find the maximum, (4) Return the identifying information of the item with the maximum value. Do not assume partial results are sufficient.",
+      "helpful": 26,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00013",
+      "content": "[str-00013] When filtering items by multiple criteria (e.g., songs that are BOTH in playlists AND in liked songs), use set intersection operations on unique identifiers rather than nested loops. This approach is more efficient and reduces logic errors from duplicate processing.",
+      "helpful": 12,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00037",
+      "content": "[str-00024] Before calling any unfamiliar API endpoint, consult its documentation to verify: (1) exact parameter names and their types, (2) required vs optional parameters, (3) the response schema and field names returned. Do not assume parameter names or response field names based on intuition; verify against documentation first to avoid parameter mismatch errors.",
+      "helpful": 29,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00046",
+      "content": "[str-00038] When performing destructive operations (e.g., account termination, permanent deletion) as part of a multi-step task, always execute verification steps on the preceding outputs before initiating the destructive operation. Confirm that critical data (e.g., backup files) has been successfully created and contains expected content before proceeding with irreversible actions.",
+      "helpful": 9,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00054",
+      "content": "[str-00047] When combining data from multiple heterogeneous sources with different response schemas, apply a two-phase approach: (1) Collection Phase: Use pagination and deduplication to gather all unique identifiers from all sources. (2) Enrichment Phase: Batch-fetch complete details for items missing required fields. This approach handles sources that return partial data (IDs only) and minimizes redundant API calls.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00069",
+      "content": "[str-00055] When filtering by date range (e.g., 'last 5 days including today'), explicitly calculate the date boundaries as inclusive intervals. For example, 'last 5 days including today' from June 4 should be May 31 through June 4 (5 calendar days). Document the min_date and max_date values and verify the API filter parameters use inclusive comparisons (e.g., date >= min_date AND date <= max_date) before executing the filter.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00074",
+      "content": "[str-00055] When performing batch write operations (e.g., adding comments to multiple transactions), use a three-phase verification approach: (1) Pre-filter validation: Verify your filtered dataset meets all criteria before performing mutations. (2) Post-operation verification: After each batch operation, re-query affected resources to confirm the operation state changed (e.g., comment_count increased, like_count increased). (3) Spot-check phase: Retrieve detailed information for at least 2-3 sample items from the batch to verify exact content persistence and operation success before declaring the task complete.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00084",
+      "content": "[str-00055] When a task requires creating multiple write operations (e.g., payment requests) for a filtered set of entities, first complete the filtering and identification phase exhaustively, then immediately execute the write operations on all identified entities. Do not interleave search and write operations. If an entity in the original set cannot be identified despite reasonable search attempts, document it as 'not found' and proceed with write operations for all successfully identified entities rather than blocking task completion.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00092",
+      "content": "[str-00055] When performing batch write operations based on data extracted from unstructured sources (e.g., names from notes) that must be matched to system records (e.g., Venmo users), use a three-phase approach: (1) Extraction Phase: Parse unstructured content to isolate the target data items (e.g., coworker names), excluding metadata markers. (2) Matching Phase: Query transaction history or other sources to identify which items have already been processed (e.g., who already paid), then use search APIs to resolve remaining unmatched items to system identities. (3) Verification Phase: Before performing batch write operations, verify that all extracted items have been successfully matched to system records and that completion status has been accurately determined.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00100",
+      "content": "[str-00055] When aggregating financial data across transactions (e.g., summing amounts sent to specific people), use a two-phase approach: (1) Retrieve Phase: Use API filters (e.g., direction, date range) to fetch candidate transactions efficiently via pagination, (2) Validation Phase: Filter the complete retrieved dataset by checking participant identity fields (e.g., receiver_email) against an authoritative source (e.g., roommates from phone app), (3) Aggregation Phase: Sum or aggregate only on the validated subset. This ensures accuracy when API-level filters alone cannot express the full filtering logic.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00119",
+      "content": "[str-00055] When organizing or categorizing items by metadata criteria: (1) Retrieve complete metadata for ALL items in the collection before applying any filtering or categorization logic (do not assume a sample is sufficient), (2) Parse and extract the relevant metadata field consistently across all items using the same logic, (3) Apply explicit comparisons (e.g., date range checks) rather than assumptions about item ordering or grouping, (4) After performing batch operations (moves, copies, deletions), verify the final distribution by re-querying affected resources and confirming the total count and distribution across categories match expectations.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00122",
+      "content": "[str-00055] When performing batch move or copy operations on items, create all destination containers (e.g., directories, folders) BEFORE executing any move/copy operations. This prevents partial failures where some items are moved successfully but others fail because the destination did not exist. After creating all destinations, execute the batch operations, then verify the final distribution by re-querying all destinations to confirm counts match expectations.",
+      "helpful": 4,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00124",
+      "content": "[str-00055] When categorizing or organizing items by metadata criteria (especially date-based or temporal categorization): (1) Retrieve ALL items from the source collection using pagination if needed; do not assume partial results are sufficient. (2) Extract and parse the relevant metadata field consistently using the same logic (e.g., same datetime library, same format specification) across ALL items to prevent miscategorization due to inconsistent parsing. (3) Create all destination containers or directories BEFORE executing any move/copy/mutation operations to ensure atomicity and prevent partial failures. (4) Execute batch operations on all categorized items. (5) Re-query destination resources to verify the final distribution matches expectations.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00128",
+      "content": "[str-00055] When removing or modifying items across multiple heterogeneous collections (e.g., library AND playlists), compute the action set as the UNION of matching items from all independent sources. (1) Retrieve and filter items from each source separately (e.g., old songs in library, old songs in each playlist). (2) Combine results using set union: `action_set = library_matches | playlist_matches_1 | playlist_matches_2 | ...`. (3) Apply the action to each source using the complete union set. This ensures items are not missed if they exist in one source but not others.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00135",
+      "content": "[str-00055] When a task requires extracting a metric (e.g., workout duration) from unstructured note content before using it as a filtering criterion, apply a two-step validation: (1) Extract the target metric from the note content using domain-specific markers (e.g., 'Workout:' or 'Duration:' prefixes), (2) Before using the extracted metric, verify it against the note's full content to ensure you captured the correct value and didn't misparse metadata. Document the extracted value explicitly before proceeding to dependent steps (e.g., filtering playlists by duration).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00138",
+      "content": "[str-00055] When a primary search strategy yields insufficient results (e.g., user's existing playlists are too short), implement a systematic fallback chain before concluding the task is unsolvable: (1) Verify exhaustive retrieval of the primary source using pagination with maximum page_limit, (2) Search public/external sources using search APIs (e.g., search_playlists), (3) If task scope permits, create new resources or use recommendations to build a solution. Do not abandon the task after checking only a subset of available options.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00152",
+      "content": "[str-00055] Before executing destructive operations (deletions, removals) based on multi-criteria filtering logic, verify the filtering logic against the task definition. When task wording is parallel across multiple resource types (e.g., 'keep X and Y that are A and B'), apply consistent logical operators (OR for 'and', AND only if explicitly required) across all resource types. If filtering logic is ambiguous after reviewing the task, consult the supervisor or task documentation to clarify whether to use union (OR) or intersection (AND) logic before proceeding with irreversible removals.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00156",
+      "content": "[str-00055] When performing batch destructive operations (e.g., deleting multiple directories), use atomic API parameters (e.g., delete_directory=True flag in compress operations) to combine the destructive step with the preceding operation. This prevents partial failures where some items are processed but not deleted. Always pair atomic operations with post-operation verification to confirm all items were deleted as expected.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00157",
+      "content": "[str-00056] Before executing batch operations on file system resources, validate that all prerequisite resources (e.g., destination directories) exist or can be created. Verify the target path is accessible and has sufficient permissions before initiating operations on multiple source items. This prevents cascading failures where batch operations fail partway through due to missing prerequisites.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00160",
+      "content": "[str-00157] When combining file creation (e.g., compression) with deletion (e.g., directory removal) in batch operations, use atomic API parameters (e.g., delete_directory=True flag) to ensure both operations succeed or fail together. This prevents partial failures where files are compressed successfully but directories are not deleted, leaving orphaned resources that consume storage and complicate cleanup.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    },
+    {
+      "id": "str-00164",
+      "content": "[str-00055] When combining file creation with deletion operations (e.g., compression followed by directory removal), use atomic API parameters (e.g., delete_directory=True) that execute both operations in a single call rather than sequential calls. This prevents orphaned resources where the creation succeeds but deletion fails. Always verify the API documentation supports combined operations before using them.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "strategies_and_hard_rules"
+    }
+  ],
+  "apis_to_use_for_specific_information": [
+    {
+      "id": "api-00002",
+      "content": "To get detailed song information including metrics like like_count, use the song detail API (e.g., `show_song()`) rather than relying on summary data from playlist listings. Verify the API response schema includes the metric field you need (e.g., `like_count`) before processing.",
+      "helpful": 11,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00003",
+      "content": "Obtain authentication credentials from the supervisor app before logging into third-party services like Spotify. Verify which API endpoints require authentication tokens and which do not.",
+      "helpful": 35,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00012",
+      "content": "[api-00012] To find least-played or most-played songs, use `show_song()` to access the `play_count` field from each song's detailed API response. Do not rely on `like_count` or other preference metrics for play-based queries. Verify the API response includes the `play_count` field before using it for comparison.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00014",
+      "content": "[api-00014] When modifying song properties (e.g., ratings), distinguish between creating a new review with `review_song()` and updating an existing review with `update_song_review()`. Check the current review state first (via `show_song_reviews()`) to determine which operation to use. Always pass the `access_token` parameter to all Spotify API calls that require authentication.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00022",
+      "content": "[api-00021] When checking existing song ratings before conditional updates, use `show_song_reviews()` with a user email filter parameter to retrieve only the current user's review. Verify the API response schema supports filtering by user identifier and confirm the response includes the `rating` field needed for comparison against the update threshold.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00024",
+      "content": "To identify user relationships (e.g., roommates, friends), use the phone app's `search_contacts()` API with the relationship filter parameter rather than inferring relationships from transaction history or social connections. The phone app is the authoritative source of truth for contact relationships. Verify the API response includes the relationship field and email addresses needed for subsequent filtering.",
+      "helpful": 6,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00030",
+      "content": "[api-00030] When retrieving Venmo transactions from a social feed, use pagination to fetch ALL transactions, not just the first page. The `get_venmo_transactions()` or equivalent API may return only a subset (e.g., 5 items per page) by default. Always check for `next_page` tokens and continue fetching until all transactions are retrieved. This is critical because qualifying transactions may be distributed across many pages.",
+      "helpful": 17,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00035",
+      "content": "[api-00034] When retrieving transactions from a social feed, use pagination with the `next_page` token to ensure you retrieve ALL transactions, not just the first page. Always wrap the retrieval in a `while True` loop that continues until `next_page` is null or absent. Verify the API response schema includes both `sender_email` and `receiver_email` fields needed for bi-directional participant filtering.",
+      "helpful": 11,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00038",
+      "content": "[api-00025] When retrieving items from multiple API sources that will be combined, be aware that different endpoints may use different response schemas. Some APIs may return full objects with nested fields (e.g., 'artists' array), while others return only IDs (e.g., 'artist_ids'). Document the schema variations for each source and plan detail-fetching accordingly before processing.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00055",
+      "content": "[api-00025] When retrieving content from note or document-like resources, use the detail endpoint (e.g., `show_note()`) to obtain the complete content, not summary listings. Verify the API response includes the full `content` or `text` field before parsing.",
+      "helpful": 3,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00059",
+      "content": "[api-00025] When retrieving note content for parsing or extraction, use the detail endpoint (e.g., show_note()) to get the full unstructured content as a string. Do not rely on search results which explicitly do not include the full content field. Verify the API response schema includes the 'content' field before attempting to parse it.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00068",
+      "content": "[api-00025] When adding comments to transactions in batch, verify the comment content persisted correctly by using show_transaction_comments() on a sample transaction to retrieve and inspect the exact comment text. Do not assume the comment was created with the intended content; verify the API response includes the 'text' or 'content' field and confirm it matches what you sent.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00075",
+      "content": "[api-00023] When filtering Venmo transactions by time range (e.g., 'last 7 days including today'), explicitly calculate the date boundaries: determine today's date, then calculate the start date as (today - 6 days) to include exactly 7 calendar days total. Verify the transaction timestamp field format and timezone before filtering. After filtering, spot-check sample transactions near the boundary dates to confirm the date range calculation is correct.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00076",
+      "content": "[api-00067] To identify roommates authoritatively in Venmo tasks, use the phone app's `search_contacts()` API with relationship filter parameter (e.g., relationship='roommate') rather than relying on manual contact lists or assumptions. This returns the definitive set of roommates to use for participant filtering in subsequent transaction queries.",
+      "helpful": 5,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00079",
+      "content": "[api-00068] After adding comments to Venmo transactions via `add_transaction_comment()`, verify comment persistence by calling `show_transaction_comments()` on a sample of modified transactions. This endpoint returns the authoritative comment state and confirms that comments were successfully persisted, rather than relying solely on the write operation response.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00089",
+      "content": "[api-00023] When creating Venmo payment requests, use `create_payment_request()` with the parameter 'user_email' (not 'receiver_email') to specify the recipient. Always include the 'description' parameter to document the purpose of the payment request. Verify the API response includes a request ID or confirmation field before considering the operation successful.",
+      "helpful": 6,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00093",
+      "content": "[api-00023] When resolving person names from unstructured sources (e.g., note content) to system user records (e.g., Venmo users), use the search_users API with the extracted name as the query parameter. Verify the API response includes email addresses and take the first matching result. Do not assume a name maps to a unique user without querying the search endpoint.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00099",
+      "content": "[api-00031] When querying Venmo transactions by direction and date range, use pagination with direction='sent' and min_created_at parameters to retrieve all sent transactions since a target date. However, verify that the receiver_email field of each transaction matches your expected set of recipients (e.g., roommates retrieved from phone app) before aggregating amounts. API direction filters narrow results but do not validate recipient identity; application-level filtering is required.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00103",
+      "content": "[api-00077] To identify participants with specific relationships (e.g., coworkers, family), use phone.search_contacts() with the relationship filter parameter rather than inferring relationships from transaction sender/receiver data. This returns the authoritative set of contacts matching the relationship criteria, which can then be used to validate transaction participants.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00105",
+      "content": "[api-00077] When filtering transactions by relationship type (e.g., 'roommates', 'coworkers'), use the phone app's `search_contacts(relationship='[type]')` as the authoritative source to retrieve the set of participant email addresses. Do not infer relationships from transaction history or other indirect sources. Extract email addresses from the contact records and use this set for subsequent bi-directional transaction filtering (checking both sender_email and receiver_email fields).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00111",
+      "content": "[api-00023] When retrieving followed artists or other user collections via APIs like `show_following_artists()`, always explicitly specify pagination parameters (`page_limit` and `page_index`) even when the task appears small. The API default page limit may be 5 or fewer items, causing incomplete result sets. Use a page_limit large enough to capture all expected items in a single call, or implement pagination loops to retrieve all results.",
+      "helpful": 4,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00112",
+      "content": "[api-00023] To filter songs by genre or other categorical attributes, use `show_song()` to access the `genre` field from each song's detailed API response. Genre information is not available in playlist listing summaries; you must fetch complete song details to determine which songs match the target genre before performing downstream operations (e.g., following artists, modifying songs). Always retrieve and check the genre field for each song individually.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00141",
+      "content": "[api-00023] When retrieving playlist details including song durations, use show_playlist() which returns an embedded 'songs' array with duration information for each song. Extract total duration by summing individual song durations from this response. Do not rely on separate show_song() calls for each song when duration is already available in the playlist response, as this creates unnecessary API overhead.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00166",
+      "content": "[api-00023] When performing batch file operations on a directory structure (e.g., compressing multiple subdirectories), use entry_type filters (e.g., entry_type='directory') to verify the correct resource types exist before and after operations. This ensures you are operating on the intended resources (files vs directories) and can confirm deletion of source directories in verification steps.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00170",
+      "content": "[api-00027] When creating a new playlist and adding multiple songs in sequence, create the playlist first via create_playlist() to obtain the playlist ID, then use add_songs_to_playlist() with the playlist ID for batch additions. Verify the final playlist state using show_playlist() to confirm all songs were successfully added and the song count matches the number of items you attempted to add.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00172",
+      "content": "[api-00023] To filter songs by genre or release date, use show_song() to access the complete song object including genre and release_date fields. Recommendation and playlist listing endpoints typically return only basic metadata (ID, name, artist); use the detail endpoint to access filtering-required fields before applying genre or temporal comparisons.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00177",
+      "content": "[api-00023] When filtering items by multiple attributes (e.g., genre AND release year), use detail endpoints (e.g., `show_song()`) to retrieve complete object information for each item in a collection. Collection listing endpoints often return partial data (e.g., song title, artist) but omit filtering-required fields (e.g., genre, release_date). Fetch complete details before applying multi-attribute filter logic to avoid missing or incorrect filtering results.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00179",
+      "content": "[api-00030] When retrieving items from paginated endpoints (e.g., show_liked_songs(), social feeds), always explicitly specify pagination parameters (page_limit, page_index) rather than relying on API defaults. Default page limits often return only partial results (e.g., 5 items per page). To ensure exhaustive retrieval, either: (1) Set page_limit to a value larger than expected total results, or (2) Implement a pagination loop that continues fetching until the response indicates no more pages are available. This applies to all verification queries and initial data collection steps to avoid incomplete result sets.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00181",
+      "content": "[api-00035] When calling Venmo APIs for payment requests and transactions, verify the exact parameter names for identifying recipients, as naming conventions vary across endpoints. For example, some endpoints use 'receiver_email' while others may use 'user_email' or 'target_user'. Always consult the specific endpoint's documentation before constructing API calls to avoid parameter mismatch errors. Test with a sample call if parameter names are ambiguous.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00183",
+      "content": "[api-00023] When retrieving Venmo payment requests, use status filters (e.g., status='approved') to retrieve only requests matching the target state. Always verify the exact filter parameter names in the API documentation before calling the endpoint. Extract the approved_at or created_at timestamp field from each request and compare all timestamps to identify the most recent request to a specific recipient.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00186",
+      "content": "[api-00036] When creating a Venmo transaction (e.g., sending a refund), use `apis.venmo.create_transaction()` with the parameter `receiver_email` (not `user_email`) to specify the recipient. Verify the exact parameter name in the API documentation before calling, as parameter naming conventions vary across Venmo endpoints (e.g., login uses `username`, transaction creation uses `receiver_email`).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00188",
+      "content": "[api-00077] To identify roommates or other relationship-based contacts authoritatively, use `apis.phone.search_contacts()` with the `relationship` parameter (e.g., `relationship='roommate'`) rather than inferring relationships from transaction history or other indirect sources. This returns authoritative contact information including email addresses needed for payment requests.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00194",
+      "content": "To identify relationships between users (e.g., roommates, coworkers), use authoritative relationship-filtered APIs (e.g., `apis.phone.search_contacts()` with a relationship filter parameter) rather than inferring relationships from transaction history. Relationship filters are the source of truth for contact categorization and avoid false positives from transaction data.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "apis_to_use_for_specific_information"
+    },
+    {
+      "id": "api-00200",
+      "content": "[api-00023] To obtain a list of roommates with their contact information (email addresses), use `phone.search_contacts()` with the relationship filter parameter set to 'roommate'. This returns an authoritative list of contacts marked with the roommate relationship. Verify the API response schema includes the email field needed for payment request creation before proceeding with batch operations.",
+      "helpful": 0,
+      "harmful": 0
+    }
+  ],
+  "common_mistakes": [
+    {
+      "id": "com-00004",
+      "content": "Do not assume playlist listings contain all song details needed for comparison. Always fetch complete song information via dedicated detail endpoints to access fields like `like_count`.",
+      "helpful": 17,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00005",
+      "content": "Do not confuse similar metric fields (e.g., `like_count` vs `rating` vs `plays`). Verify which field matches the task requirement before using it as the comparison criterion.",
+      "helpful": 4,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00008",
+      "content": "[com-00008] When an item (e.g., a song) appears in multiple collections (e.g., multiple playlists), deduplicate by unique identifier before comparing metric values. Use the song's unique ID to ensure each item is counted only once, even if it appears across multiple playlists, before determining the maximum metric value.",
+      "helpful": 9,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00011",
+      "content": "[com-00011] Do not confuse extremum directions: 'least-played', 'minimum', 'lowest' require finding the MINIMUM metric value, while 'most-played', 'maximum', 'highest', 'most-liked' require finding the MAXIMUM metric value. Always parse the task requirement carefully to determine whether you should compare for minimum or maximum before iterating through items.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00015",
+      "content": "[com-00015] Do not assume all songs in playlists are also in the user's liked songs collection. Use set intersection of song IDs to identify only songs meeting both criteria before applying mutations. Processing all songs in playlists without filtering will result in attempting operations on songs that should not be modified.",
+      "helpful": 3,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00020",
+      "content": "[com-00020] Do not assume all songs in a library have been explicitly liked or rated. Always retrieve the liked songs collection separately and use set operations to distinguish between liked and non-liked songs, rather than inferring like status from the absence of a rating field in library results.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00021",
+      "content": "[com-00020] When querying existing reviews via `show_song_reviews()` in multi-user systems, filter results by the current user's email or identifier to isolate only the current user's review. Do not assume the first result or aggregate all results belong to the current user. Filtering ensures you identify the correct review state before deciding to create or update.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00025",
+      "content": "Do not assume a partial social feed or transaction list is complete. Always retrieve the full collection of transactions/items before applying filters. Incomplete data retrieval may miss items that meet the filtering criteria, resulting in incomplete results.",
+      "helpful": 28,
+      "harmful": 1,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00026",
+      "content": "When filtering transactions by participant identity (e.g., transactions involving specific people), check both sender and receiver fields against your filter criteria. A transaction should be included if either the sender or receiver matches the filter set, not just one direction.",
+      "helpful": 5,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00029",
+      "content": "[com-00029] When filtering transactions by participant identity, do NOT check only the sender or only the receiver. Transactions are bi-directional: a transaction involving a target person includes cases where that person is the sender OR the receiver. Always check both directions: `if sender_email in target_set or receiver_email in target_set`. Filtering only one direction will miss half the qualifying transactions.",
+      "helpful": 6,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00039",
+      "content": "[com-00020] Do not assume items retrieved from an API have all required fields. When combining data from multiple sources, some items may only have IDs without full details (e.g., song with only 'artist_ids' but no 'artists' names). Fetch complete details for any items missing required information before final processing or formatting.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00040",
+      "content": "[com-00021] Do not assume parameter names across similar APIs are consistent. Verify exact parameter names in API documentation before calling (e.g., some APIs use 'email', others use 'username'; some use 'path', others use 'directory_path'). A single character mismatch in parameter names will cause API errors.",
+      "helpful": 29,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00044",
+      "content": "[com-00039] Do not assume API responses from collection endpoints (e.g., playlists, albums) include all required fields for the final output. When responses contain only identifiers (e.g., song_id), fetch full object details separately using detail endpoints (e.g., show_song()) before processing. Attempting to use incomplete data will result in missing required fields in the output.",
+      "helpful": 4,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00045",
+      "content": "[com-00040] When aggregating data from multiple heterogeneous sources (e.g., song library, album library, playlists), do not assume all sources return data in the same schema. Inspect response structures from each source and handle schema variations separately (e.g., some sources may return full objects while others return only IDs). Normalize data from all sources before deduplication.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00050",
+      "content": "[com-00046] When exporting or backing up data from multiple heterogeneous sources (e.g., song library, album library, playlists), do not assume all sources return the same schema. Some endpoints may return full objects with all required fields, while others return only IDs or partial data. Always fetch complete details for items missing required fields (e.g., artist names) before writing to the export file.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00051",
+      "content": "[com-00047] When exporting data to a file, do not skip verification of the export file before executing subsequent destructive operations (e.g., account termination). Even if the export API call succeeds, the file may be incomplete, malformed, or missing records. Always verify file existence, structure (headers, formatting), and record count matches expectations before proceeding with irreversible actions.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00056",
+      "content": "[com-00016] When extracting structured data (e.g., movie titles) from unstructured content (e.g., note text), do not assume the content is in a single predictable format. Parse the content carefully to identify and extract only the required fields while filtering out metadata (e.g., director, genre, descriptions) that should not be included in the final output.",
+      "helpful": 3,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00060",
+      "content": "[com-00016] Do not assume search results include the full content needed for parsing. Search endpoints often return metadata only (IDs, titles, summaries). Always use detail endpoints to retrieve complete unstructured content before attempting to extract or parse structured data from it.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00063",
+      "content": "[com-00017] Do not assume search results from `search_notes()` include the full note content. Search endpoints return only metadata. Always use the detail endpoint `show_note()` with the note ID to access the complete `content` field before attempting to parse or extract data from notes.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00066",
+      "content": "[com-00042] Do not assume that applying an API filter parameter (e.g., direction='received', sender_email filter) guarantees the results match your criteria without validation. Always spot-check a sample of filtered results by explicitly checking each item's relevant fields against your original filtering criteria before performing batch mutations. For example, after filtering transactions by direction='received', verify that each transaction's sender_email is actually in your coworker set.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00071",
+      "content": "[com-00040] Do not attempt to call authenticated API endpoints without first verifying authentication state. Before calling any third-party service API, check if an access token or login credentials are required. If required, obtain credentials from the supervisor app and complete the login flow before making subsequent API calls. A 401 error indicates missing or invalid authentication - immediately check the API documentation for authentication requirements rather than retrying the same call.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00072",
+      "content": "[com-00041] Do not assume parameter naming conventions are consistent across services. Different APIs may use different parameter names for the same concept (e.g., 'username' vs 'email' for login credentials, 'phone_number' vs 'email' for user identification). Always consult the specific API documentation before calling an endpoint to verify exact parameter names and their expected value formats (e.g., phone login may require 'phone_number' field with phone format, not 'email' field).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00078",
+      "content": "[com-00030] When calculating date ranges for 'last N days including today', do not assume exclusive boundaries. For a 10-day range including today, calculate as: start_date = today - 9 days, end_date = today. This produces an inclusive interval spanning exactly 10 calendar days. Verify the date calculation by counting the boundary dates (e.g., May 24 through June 2 = 10 days) before filtering transactions.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00081",
+      "content": "[com-00032] Do not retry identical search strategies indefinitely when an entity cannot be found. If the same search API (e.g., search_users, search_contacts) returns no results after 2-3 attempts with different query variations, pivot to: (1) attempting the primary action (e.g., API call) with educated guesses (e.g., email pattern matching based on other found entities), (2) proceeding with available information and excluding the unfound entity, or (3) explicitly reporting the entity as not found. Infinite retry loops with identical strategies waste steps and block task completion.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00082",
+      "content": "[com-00033] Do not assume that an entity not found in a search API cannot be used in write operations (e.g., create_payment_request). Many APIs accept identifiers (e.g., email addresses) that may not exist in searchable databases yet. If search fails but you have a reasonable email pattern guess (based on other found entities or standard naming conventions), attempt the write operation with the guessed identifier before concluding the entity is unusable.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00083",
+      "content": "[com-00034] When matching entities from unstructured data (e.g., note names) to system records (e.g., Venmo transaction senders), verify that the same person has not been found under multiple display names or aliases. For example, 'Stephen' and 'Chris' may refer to the same Venmo account. Check sender_email and other identifying fields to deduplicate before determining who has or has not completed an action (e.g., paid their share).",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00087",
+      "content": "[com-00034] Do not assume entity names are standardized across different systems (e.g., first names in notes vs full names in Venmo contact lists). Use fuzzy name matching with bidirectional substring checks (e.g., 'name.lower() in system_name.lower() or system_name.lower() in name.lower()') to match entities across heterogeneous sources. Exact string matching will cause false negatives when the same person is represented differently.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00088",
+      "content": "[com-00035] Do not assume API parameter names are consistent across different endpoints or services. Always verify the exact parameter name in the API documentation before calling an endpoint (e.g., one endpoint may use 'user_email' while another uses 'receiver_email'). Parameter name mismatches will cause API errors even if the underlying concept is identical.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00094",
+      "content": "[com-00016] Do not assume that search results for user identity resolution include all required fields (e.g., email) without verifying the API response schema. Always check that the search_users response includes the email field before extracting it for downstream operations like creating payment requests.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00095",
+      "content": "[com-00017] When matching entities from unstructured sources to system records, do not skip identity resolution for items that appear to have obvious matches. Always use search APIs to confirm identity mappings, as name-based assumptions may match incorrect users or fail to find the intended user.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00098",
+      "content": "[com-00036] Do not assume API filter parameters (e.g., direction='sent' in Venmo) are sufficient to identify transactions matching all criteria. Always retrieve the complete filtered dataset from the API and then apply additional application-level filtering (e.g., checking receiver_email against a set of expected participants) to ensure accuracy. API filters narrow results efficiently but may not enforce all business logic constraints required by the task.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00101",
+      "content": "[com-00036] Do not infer participant relationships (e.g., 'coworker', 'friend') from transaction history alone. Always retrieve relationship information from the authoritative source (e.g., phone.search_contacts() with relationship filter) and use that set to validate transactions. Inferring relationships from transaction data may include false positives or miss intended participants.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00102",
+      "content": "[com-00037] When the task asks for 'money received FROM X' or 'money sent TO X', carefully distinguish the direction: 'received FROM X' means X is the sender (check sender_email field), while 'sent TO X' means X is the receiver (check receiver_email field). Do not confuse these directions, as they reverse which field to validate against your participant set.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00108",
+      "content": "[com-00016] Do not assume that API responses without explicit pagination parameters are complete. Many APIs have small default page limits (e.g., 5-10 items). Even if a response appears to contain results, it may only represent the first page. Always explicitly specify pagination parameters (e.g., `page_limit`, `page_index`) when retrieving collections, especially during verification steps where incomplete results could mask missing items.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00113",
+      "content": "[com-00016] Do not assume genre or other categorical song attributes are available in playlist listing responses. Always fetch complete song details via `show_song()` to access the `genre` field before filtering songs by category. Relying on playlist metadata or summary data will cause you to miss or misidentify songs matching the target category.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00114",
+      "content": "[com-00016] Do not assume pagination uses safe defaults or returns complete results without explicit parameters. Always specify pagination parameters explicitly (e.g., `page_limit=20` for Spotify) even when querying endpoints you believe return all results. Relying on implicit pagination behavior can result in incomplete data sets.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00118",
+      "content": "[com-00024] When organizing items by metadata criteria (e.g., date-based categorization), do not assume metadata field formats or naming conventions. Always consult API documentation to verify: (1) the exact field name containing the metadata (e.g., 'created_at' vs 'creation_date'), (2) the format of the field value (e.g., ISO 8601 timestamp vs YYYY-MM string), (3) how to correctly parse and extract the relevant portion (e.g., extracting YYYY-MM from a full timestamp). Verify parameter names in API documentation BEFORE the first call to avoid validation errors.",
+      "helpful": 3,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00121",
+      "content": "[com-00034] When organizing items by metadata criteria (e.g., creation date, category), do not apply inconsistent parsing logic across items. Use the same extraction and comparison logic for ALL items in the collection. For example, when filtering by date, extract the date field using identical parsing (e.g., always extract YYYY-MM format) and apply the same comparison operators (e.g., month == 3) to every item. Inconsistent parsing will result in some items being miscategorized.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00125",
+      "content": "[com-00016] Do not apply different parsing logic or libraries to the same metadata field across different items during categorization. For example, if parsing dates using datetime.fromisoformat() for one item, use the same method for all items. Inconsistent parsing can lead to miscategorization where some items are correctly categorized and others are not, causing silent logic errors that are difficult to detect.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00126",
+      "content": "[com-00017] Do not execute move, copy, or deletion operations on items before creating all destination containers (directories, folders, collections). Executing mutations before destinations are prepared can result in partial failures where some items are moved but others fail, leaving the source in an inconsistent state. Always prepare all containers first, then execute all mutations atomically.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00129",
+      "content": "[com-00016] Do not assume one collection is a superset of another. When processing multiple collections (e.g., library and playlists), treat each as independent and retrieve items from each separately. A song may exist in a playlist without existing in the library, or vice versa. Filtering items from one collection and applying results only to another will miss items that exist uniquely in each source.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00133",
+      "content": "[com-00032] Do not automatically pivot to creating new resources when existing resources don't meet criteria. Task wording matters: 'find a playlist', 'use a playlist', or 'start playing a playlist' implies searching for existing resources. 'Create a playlist' explicitly permits creation. When search yields no matches, validate whether creation is in scope (check task definition or consult supervisor) before pivoting. If creation is not in scope, report the best available existing resource or that no suitable resource exists, rather than assuming creation is acceptable.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00134",
+      "content": "[com-00033] Do not assume the final answer format is correct without explicit verification. After generating a final answer, verify: (1) the answer format matches expected output (e.g., playlist ID vs. playlist name vs. playback action), (2) the answer content matches ground truth expectations exactly (not just 'appears correct'), and (3) all prerequisite validation steps have been performed. A logically sound approach can still fail if the output format or content doesn't align with ground truth requirements.",
+      "helpful": 0,
+      "harmful": 2,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00139",
+      "content": "[com-00026] Do not make redundant API calls to extract data already present in parent response objects. Before calling detail endpoints (e.g., show_song()) for each item in a collection, verify that the collection endpoint (e.g., show_playlist()) does not already include the required field (e.g., duration) in its nested response structure. Extract from the existing response first; only call detail endpoints if the field is genuinely missing.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00144",
+      "content": "[com-00016] Do not assume the answer format for complete_task() without verifying expectations. The answer may need to be a resource ID (e.g., playlist ID '22'), a resource name (e.g., 'Urban Odyssey: Hip-Hop Journey'), a confirmation message with details (e.g., 'Started playing Urban Odyssey: Hip-Hop Journey with 38.7 minutes duration'), or a structured format. Check the task definition and API documentation for complete_task() to determine the exact expected answer format before submitting. If the format is ambiguous, consult the supervisor app or task description rather than assuming.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00146",
+      "content": "[com-00019] When filtering a collection for cleanup/removal based on multiple inclusion criteria (e.g., 'keep songs that are liked OR downloaded'), do not compute the union of criteria globally first. Instead, always intersect the target collection with the criteria set: `items_to_keep = collection ∩ (criterion_1 ∪ criterion_2)`. Computing the union first and then intersecting later can lead to scope confusion about which items are affected. Always start with the collection you are modifying, then apply filter criteria to it.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00150",
+      "content": "[com-00032] Do not apply AND logic when task wording uses parallel language for multiple resource types (e.g., 'keep songs and albums that are liked and downloaded'). This typically means OR logic for each resource type independently: songs that are (liked OR downloaded), albums that are (liked OR fully downloaded). Do not make filtering more restrictive than stated by assuming AND logic across criteria. If task wording is ambiguous, consult the supervisor or task definition before executing destructive operations.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00153",
+      "content": "[com-00032] When a task requires keeping items that meet criterion_A OR criterion_B (inclusive OR), do not apply AND logic by filtering for items meeting both criteria simultaneously. Compute the correct set as: items_to_keep = all_items ∩ (criterion_A_set ∪ criterion_B_set), then items_to_remove = all_items - items_to_keep. Applying AND logic will incorrectly remove items that meet only one criterion.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00154",
+      "content": "[com-00033] When a task involves hierarchical criteria (e.g., 'an album is downloaded if ALL songs in it are downloaded'), do not pre-compute a global set of items meeting the criterion at the child level. Instead, verify each parent item individually by checking whether all of its children meet the criterion. This prevents incorrectly excluding parent items when only some of their children fail the criterion.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00158",
+      "content": "[com-00016] Do not execute destructive operations (e.g., directory deletion) as separate steps after a preceding operation (e.g., compression). Instead, use atomic API parameters to combine them in a single call. Separating these steps risks partial failures where some items are compressed but not deleted, leaving orphaned files. Always check if the API supports combined operations before implementing multi-step deletion workflows.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00161",
+      "content": "[com-00040] Do not perform compression and directory deletion as separate sequential operations. Always use atomic API parameters that combine both operations into a single call. Separate operations risk orphaned directories if the deletion step fails after successful compression, requiring manual cleanup.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00167",
+      "content": "[com-00016] Do not perform file compression and source directory deletion as separate sequential API calls. This creates a window where compression succeeds but deletion fails, leaving orphaned source directories. Always check if the compression API supports atomic parameters (e.g., delete_directory=True) to combine both operations in a single call, preventing partial failures.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00168",
+      "content": "[com-00026] Do not assume that list endpoints (e.g., recommendations, search results) return all fields needed for multi-criteria filtering. When filtering by criteria like genre, release_date, or other detail-level fields, always call the detail endpoint (e.g., show_song()) for each item to access complete metadata before applying filters. Filtering on partial data from list endpoints may exclude valid items or include invalid items.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00171",
+      "content": "[com-00026] Do not assume recommendation or playlist listing endpoints return all required metadata fields (e.g., genre, release_date). Always fetch complete song details via show_song() before applying filters on these fields, as listing responses often omit detailed metadata needed for filtering decisions.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00176",
+      "content": "[com-00016] Do not assume parameter names are consistent across similar API endpoints, even when performing similar operations. For example, user authentication may use 'username' in one API but 'email' in another; playlist creation may use 'title' in one API but 'name' in another. Always verify exact parameter names in the API documentation for each endpoint before calling it, rather than relying on intuition or patterns from other endpoints.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00178",
+      "content": "[com-00023] Do not rely on default pagination settings when verifying batch write operations. Always explicitly specify pagination parameters (e.g., page_limit, page_index) when re-querying paginated endpoints during verification. Default page limits (e.g., page_limit=5) may return incomplete result sets, causing verification to incorrectly conclude that fewer items were modified than actually attempted. Proactively retrieve all pages by setting page_limit to a value larger than the expected result set size or by implementing a loop to fetch all pages until no more results are returned.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00180",
+      "content": "[com-00032] When identifying the 'last', 'most recent', or 'latest' item in a collection of timestamped items (e.g., transactions, payment requests), do not assume the API returns results in chronological order. Always retrieve all items using pagination, extract the timestamp field (e.g., 'created_at', 'updated_at', 'approved_at') from each item, compare all timestamps to identify the maximum (most recent), and use that item's data for subsequent operations. Spot-check the timestamp of the identified item to confirm it is indeed the most recent before proceeding.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00182",
+      "content": "[com-00037] Do not assume API results are pre-sorted by timestamp or that the first result is the most recent. When finding the 'last', 'most recent', or 'latest' item in a timestamped collection (e.g., payment requests, transactions), always retrieve ALL items via pagination, extract the timestamp field from each item, compare all timestamps to identify the maximum (most recent), and use that item for subsequent operations. Partial results or assumed ordering will cause you to miss the actual most-recent item.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00185",
+      "content": "[com-00181] Do not assume API results are pre-sorted by timestamp (e.g., 'approved_at', 'created_at'). When identifying the 'last', 'most recent', 'latest', or 'oldest' item in a timestamped collection, always retrieve ALL items using pagination, extract the timestamp field from each item, and compare all timestamp values to find the maximum (most recent) or minimum (oldest). Do not rely on the order of results returned by the API.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00189",
+      "content": "[com-00032] Do not infer participant relationships (e.g., 'roommate', 'coworker') from transaction history or context clues. Always use the authoritative relationship API (e.g., `apis.phone.search_contacts()` with `relationship` filter) to retrieve participants meeting specific relationship criteria, as this ensures accuracy and provides required contact details (e.g., email addresses).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00190",
+      "content": "[com-00033] When calculating cost splits among multiple people, do not forget to include the requester (the person who paid the bill) in the divisor. The correct formula is: `amount_per_person = total_amount / (num_other_people + 1)`. Failing to include the requester results in incorrect split amounts.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    },
+    {
+      "id": "com-00197",
+      "content": "Do not infer user relationships (e.g., 'roommate', 'coworker') from transaction history or transaction participants. Always use authoritative relationship-filtered APIs (e.g., phone contact app with relationship filters) to identify users matching specific relationship criteria. Transaction-based inference may include false positives (e.g., someone you paid once but are not roommates with).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "common_mistakes"
+    }
+  ],
+  "verification_checklist": [
+    {
+      "id": "ver-00006",
+      "content": "Before returning the final answer, verify that you have processed songs from ALL playlists in the user's library, not just a subset. Confirm the metric field used for comparison matches the task definition (e.g., 'most-liked' = highest `like_count`).",
+      "helpful": 13,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00016",
+      "content": "[ver-00016] After performing write operations (e.g., creating or updating song reviews), verify the final state by querying the affected resources again. Confirm that the number of modified items matches expectations and that the new values (e.g., ratings) are correctly persisted in the system.",
+      "helpful": 12,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00028",
+      "content": "After performing batch write operations on multiple items (e.g., liking multiple transactions), re-query the affected resources to verify that the number of successfully modified items matches the number of items you attempted to modify. Confirm the operation state (e.g., 'liked' status) is correctly persisted for each item.",
+      "helpful": 7,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00033",
+      "content": "[ver-00029] When filtering transactions by date, verify that the date extraction logic correctly parses the transaction timestamp field and compares it against the target date (e.g., 'yesterday'). Confirm that the date comparison accounts for timezone and date format differences. After filtering, spot-check a sample of filtered transactions to ensure their dates match the target date before performing batch operations.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00036",
+      "content": "[ver-00034] After filtering transactions by participant identity using bi-directional logic, spot-check a sample of filtered transactions to confirm that each transaction has the target participant in EITHER the sender_email OR receiver_email field (not necessarily both). Verify that you have not accidentally applied AND logic (requiring participant in both fields) instead of OR logic.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00041",
+      "content": "[ver-00037] Before completing a data export or formatting task, verify that the final output matches the task specification exactly: check headers, formatting rules (e.g., pipe-separated values), field content, and file location. Spot-check sample rows to confirm data integrity before considering the task complete.",
+      "helpful": 6,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00049",
+      "content": "[ver-00037] Before executing destructive operations (e.g., account deletion, permanent data removal), verify that all backup or export operations have completed successfully. Spot-check the created file or exported data to confirm: (1) file exists at the specified location, (2) file contains expected headers and data structure, (3) record count matches expectations. Only after verification is complete, proceed with irreversible operations.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00053",
+      "content": "[ver-00037] Before executing destructive operations (e.g., account termination, permanent deletion) that follow export or backup tasks, verify the export file by checking: (1) file exists at the specified path, (2) file contains expected headers and structure, (3) record count in file matches the total number of unique items processed. Spot-check a sample of records in the export file to confirm data integrity before proceeding with irreversible actions.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00057",
+      "content": "[ver-00037] After executing the primary action (e.g., sending a message), verify successful execution by querying the affected resource (e.g., `show_text_message()`) to confirm the action completed without errors before marking the task complete with the supervisor app.",
+      "helpful": 19,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00062",
+      "content": "[ver-00057] After sending a message via send_text_message() or similar communication API, verify successful delivery by querying the sent message details (e.g., show_text_message()). Confirm that the message content, recipient, and delivery status match expectations before marking the task complete.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00067",
+      "content": "[ver-00037] When performing batch write operations on filtered resources, implement three-phase verification: (1) Spot-check sample items from the filtered set against the original filter criteria before mutations (e.g., confirm sender_email is in coworker_emails), (2) After write operations, re-query a sample of affected resources to verify the new state persisted with correct content (e.g., retrieve comments and confirm text is exactly 'Thank you!'), (3) Verify the final count of modified items matches the count of items you attempted to modify and matches expected ground truth count.",
+      "helpful": 14,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00073",
+      "content": "[ver-00037] After performing write operations that produce text content (e.g., adding comments, creating notes), verify not just that the operation succeeded, but that the exact content was persisted correctly. Retrieve the modified resource and compare the content field against your original input to confirm character-for-character accuracy. Spot-check multiple items (at least 2-3 samples) to ensure consistency across batch operations.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00080",
+      "content": "[ver-00037] When performing batch write operations on Venmo transactions (e.g., adding comments and likes), implement three-phase verification: (1) Pre-operation: validate the participant set (e.g., roommate emails) is complete and accurate. (2) Post-operation: re-query a sample of modified transactions using show_transaction_comments() and check the liked status to confirm both mutations persisted. (3) Count verification: confirm the number of successfully modified transactions matches the number of transactions you attempted to modify. Spot-check at least 3 sample transactions across the batch.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00085",
+      "content": "[ver-00037] After filtering entities by a completion criterion (e.g., 'who has paid'), verify that entities excluded from the write operation set (e.g., those who have already paid) are correctly identified by their unique identifiers (e.g., sender_email). Spot-check that no entity is both in the 'completed' set and the 'pending action' set. Confirm deduplication when the same entity appears under multiple names or aliases.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00090",
+      "content": "[ver-00037] When performing batch operations on entities matched across heterogeneous systems (e.g., names from notes matched to Venmo users), implement three-phase verification: (1) Pre-operation: validate that your filtered set of targets is correct by spot-checking a sample of matched entities to confirm the matching logic is sound, (2) Post-operation: re-query the affected resource to confirm all intended operations succeeded, (3) Spot-check sample: manually verify a subset of results to ensure data integrity and correct parameter passing.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00096",
+      "content": "[ver-00037] Before performing batch write operations on entities extracted from unstructured sources, verify that all items have been successfully matched to system identities. Confirm that the number of resolved identities equals the number of extracted items, and spot-check that each resolved identity (e.g., email address) is correct and distinct.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00104",
+      "content": "[ver-00037] After filtering transactions by participant and direction, spot-check a sample of filtered transactions to confirm the direction interpretation is correct: for 'received FROM X' transactions, verify that X appears in the sender_email field; for 'sent TO X' transactions, verify that X appears in the receiver_email field. Confirm the task direction matches the field you validated.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00107",
+      "content": "[ver-00037] After filtering transactions by relationship-based participant criteria using bi-directional logic, spot-check a sample of filtered transactions (at least 2-3 examples) to confirm: (1) Each transaction has the target participant in either sender_email OR receiver_email, (2) The amounts are correctly included in the aggregation, (3) The dates fall within the specified range. This confirms that OR logic (not AND logic) was correctly applied and that the aggregation is accurate before submitting the final answer.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00109",
+      "content": "[ver-00037] When verifying write operations that modify a collection (e.g., following artists), re-query the affected collection using explicit pagination parameters with a sufficiently large `page_limit` to ensure all modified items are returned. Do not rely on default pagination settings during verification, as they may hide items and create a false impression of completeness.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00117",
+      "content": "[ver-00037] After performing batch write operations (e.g., following multiple artists), re-query the affected resource using the same pagination parameters used during initial data collection. Verify that the number of items returned in the paginated re-query matches the number of items you attempted to modify, confirming that all operations persisted correctly across pagination boundaries.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00120",
+      "content": "[ver-00037] After performing batch file/item operations (e.g., moving multiple files to directories), verify completion by re-querying the affected resources (e.g., listing directory contents). Confirm that: (1) the total number of items processed matches the number of items you attempted to move, (2) the distribution of items across destination categories matches your categorization logic, (3) no items remain in the source location that should have been moved, (4) all items in destination directories have the correct names and metadata.",
+      "helpful": 5,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00123",
+      "content": "[ver-00037] After performing batch file organization operations (moves, copies) based on metadata categorization, verify the final distribution by re-querying all destination directories. Confirm that (1) the total number of items across all destinations equals the original count, (2) the distribution of items across destinations matches the categorization logic (e.g., count in each category matches the number of items meeting that category's criteria), and (3) spot-check a sample of items in each destination to verify they meet the expected categorization criteria.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00127",
+      "content": "[ver-00037] After categorizing and organizing items by metadata criteria into multiple destinations, re-query all destination resources with explicit pagination to confirm: (1) the total count of items across all destinations matches the total count retrieved from the source, (2) the distribution of items across destinations matches the categorization logic (e.g., count in 'Athens' folder matches count of January-created files), and (3) spot-check a sample of items in each destination to verify their metadata matches the destination's category.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00132",
+      "content": "[ver-00037] After removing items from multiple independent collections (e.g., library and playlists), verify removals across ALL sources: (1) Re-query the library and confirm no songs matching the removal criteria (e.g., released ≤2021) remain. (2) Re-query each playlist separately and confirm no matching songs remain. (3) Verify that the total count of removed instances matches the expected count (accounting for songs that may have appeared in multiple locations). (4) Spot-check a sample of remaining songs in both library and playlists to confirm they do NOT match the removal criteria.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00136",
+      "content": "[ver-00037] Before returning a final answer involving resource selection or creation, verify that the answer aligns with task scope: (1) Confirm whether the task expects existing resources only or permits creation, (2) If the task implies existing resources but none met criteria, document that exhaustive search was performed and report the best available option or unavailability, (3) Verify the final answer format and content exactly match ground truth expectations (not just logically sound). If uncertain about scope or format, consult supervisor or task definition before finalizing.",
+      "helpful": 1,
+      "harmful": 1,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00142",
+      "content": "[ver-00037] Before concluding that no suitable resource exists, verify that you have exhaustively searched all available sources: (1) Retrieved ALL items from the primary source using pagination with maximum page_limit and confirmed no next_page token remains, (2) Executed search queries on secondary sources (e.g., public playlists), (3) Confirmed that fallback creation is either not permitted or has been attempted. Do not assume a resource does not exist based on partial retrieval.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00145",
+      "content": "[ver-00037] Before calling complete_task(), verify the answer format explicitly: (1) Confirm whether the task expects a resource ID, name, confirmation message, or structured data, (2) Check the complete_task() API documentation for parameter requirements and expected answer schema, (3) If the task involves initiating an action (e.g., starting playlist playback), verify the action succeeded by querying the affected resource state (e.g., use show_current_song() to confirm playback is active), (4) If answer format is ambiguous, consult the supervisor or task definition before finalizing rather than assuming. This gate prevents answer format mismatches that cause task failure despite correct logic execution.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00149",
+      "content": "[ver-00037] After performing scoped cleanup operations (e.g., removing songs from library that are neither liked nor downloaded), verify the result by: (1) Re-querying the target collection (e.g., all songs in library) to get the final count. (2) Confirming the final count equals the expected number of items to keep. (3) Spot-checking a sample of remaining items to ensure each meets at least one inclusion criterion (e.g., is liked or downloaded). (4) Confirming that no items meeting the inclusion criteria were accidentally removed. This verification catches scope-ordering errors where the wrong set of items was targeted for removal.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00155",
+      "content": "[ver-00037] After completing a scoped cleanup or removal operation, confirm in your final answer: (1) which collections or item types were affected (e.g., 'songs and albums'), (2) how many items were removed and why (e.g., 'X songs removed because they were neither liked nor downloaded'), (3) which collections or item types were left unchanged (e.g., 'playlists were not modified as requested'), and (4) the final state of affected collections (e.g., 'Y songs and Z albums remain in library'). This scope confirmation prevents ambiguity about task boundaries and execution completeness.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00159",
+      "content": "[ver-00037] After performing batch file system operations with atomic deletion (e.g., compress_directory with delete_directory=True), verify the final state by re-querying the affected directory structure. Confirm that: (1) all expected output files (e.g., zip files) exist at the correct paths, (2) all original source directories have been deleted, (3) no orphaned files remain from partially-completed operations. Spot-check the count of created files matches the count of deleted directories.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00162",
+      "content": "[ver-00160] After performing atomic batch operations combining file creation with deletion (e.g., compress_directory with delete_directory=True), verify both aspects of the operation: (1) Confirm all expected output files (e.g., tar archives) were created in the target location, (2) Confirm all source directories were deleted and no longer exist in the original location. Re-query the directory structure to ensure no orphaned directories remain.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00165",
+      "content": "[ver-00037] After performing atomic file operations that combine creation with deletion (e.g., compress and delete), verify both outcomes: (1) Confirm the output file (e.g., .zip) was created at the target path using file listing or existence check, (2) Confirm the source resource (e.g., directory) no longer exists by attempting to list its contents or checking entry_type filters. Do not rely solely on API success responses; verify the final file system state reflects both the creation and deletion.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00173",
+      "content": "[ver-00037] When performing multi-step write operations (e.g., create playlist, then add songs) that span multiple API calls and may encounter authentication token expiration, re-verify the final state using fresh authentication credentials. If initial verification fails due to token expiration, re-authenticate and retry the verification query to confirm operation success.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00187",
+      "content": "[ver-00057] After creating a Venmo transaction (e.g., payment or refund), verify the transaction was successfully created by retrieving it from the transaction list using the same filter criteria (e.g., receiver_email, amount). Confirm the transaction appears in the results with the expected status and amount before considering the operation complete.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00191",
+      "content": "[ver-00037] After creating payment requests (e.g., via `create_payment_request()`), verify the requests were persisted by querying the sent payment requests (e.g., `show_sent_payment_requests()`). Confirm that the receiver email addresses and amounts in the queried results match the payment requests you created. Do not rely solely on the API creation response; verify persistence in the system.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "verification_checklist"
+    },
+    {
+      "id": "ver-00198",
+      "content": "After extracting financial data (e.g., bill amounts) from unstructured file content (e.g., receipt text), verify the extracted value by spot-checking it against the source document to ensure correct parsing. Confirm the extracted amount matches the total field in the receipt before using it for calculations (e.g., cost splitting, payment request creation).",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "verification_checklist"
+    }
+  ],
+  "domain_concepts": [
+    {
+      "id": "dom-00007",
+      "content": "In Spotify context, 'most-liked song' is defined as the song with the highest `like_count` value across all unique songs in all user playlists. A song appearing in multiple playlists should be counted once with its aggregate like_count.",
+      "helpful": 8,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00010",
+      "content": "[dom-00010] In Spotify context, 'least-played song' is defined as the song with the lowest `play_count` value across all unique songs in the user's library. This is distinct from 'most-liked' which uses `like_count`. Ensure you identify the correct metric based on the task wording: use `play_count` for play/listen-based queries and `like_count` for preference-based queries.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00031",
+      "content": "[dom-00031] In Venmo context, a 'transaction involving a person' includes both cases where that person is the transaction sender (money out) and the transaction receiver (money in). A transaction is bidirectional: if you are filtering for transactions involving your sibling, you must check both the sender_email and receiver_email fields. A transaction where your sibling sent you money is just as relevant as one where you sent your sibling money.",
+      "helpful": 11,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00065",
+      "content": "[dom-00032] In note-based content extraction tasks, structured data (e.g., movie titles) is often embedded in unstructured note content alongside metadata. Metadata markers include: lines starting with '#' (headers), lines starting with '-' (bullet points), and lines containing ':' (key-value pairs like 'Director: Name'). These markers should be excluded during extraction to isolate the desired structured data.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00070",
+      "content": "[dom-00066] In Venmo context, when filtering transactions by direction (e.g., direction='received'), the filter returns only transactions where the current user is the receiver. However, to verify these transactions are from intended parties (e.g., coworkers), you must still explicitly check the sender_email field against your criteria set, as the direction filter alone does not validate sender identity. Always perform bi-directional participant validation: confirm the sender is in your expected set.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00086",
+      "content": "[dom-00067] In Venmo context, transaction senders may have display names that differ from their account email addresses. When matching names from notes to Venmo transactions, use the sender_email field as the authoritative unique identifier, not the display name. A single Venmo account (identified by email) may have multiple display name variations.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00091",
+      "content": "[dom-00071] In Venmo context, when extracting payment information from unstructured notes (e.g., a list of people who attended a dinner), use metadata markers to exclude non-data content. Lines starting with '#' (headers), '-' (bullet points), and containing ':' (key-value pairs) may contain metadata rather than person names. Extract only the core entity data (person names and their shares) and ignore metadata lines to prevent false matches when searching for Venmo users.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00106",
+      "content": "[dom-00071] In transaction date filtering for 'since [date] of this year' queries, the date boundary should be interpreted as the start of that calendar date (e.g., 'since 1st Mar' means 2024-03-01 00:00:00 or the equivalent in the system's timezone). When retrieving transactions, set the min_created_at parameter to this date boundary and retrieve all transactions on or after this date. Verify that the filtered transaction set includes transactions from the boundary date itself.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00110",
+      "content": "[dom-00071] In Spotify context, the `genre` field returned by song detail APIs is a single string value (e.g., 'classical', 'rock'), not an array. Filter songs by genre using exact string comparison or case-insensitive string matching (e.g., `genre.lower() == 'classical'`), not array membership checks.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00115",
+      "content": "[dom-00067] In Spotify context, the genre field in song detail responses (`show_song()`) is represented as a single string value. When filtering songs by genre, use case-insensitive string comparison to match genre values, as genre names may be returned in different cases across API responses.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00130",
+      "content": "[dom-00071] In Spotify context, the 'song library' and 'playlists' are independent collections. A song can exist in the library without being in any playlist, in playlists without being in the library, or in both. When a task references 'library and playlists' as separate targets for an operation, both must be queried independently and the union of matching items across both sources must be used to determine the complete action set.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00137",
+      "content": "[dom-00067] In task wording interpretation, distinguish between implicit and explicit resource scope: (1) Implicit existing-only: 'find a playlist', 'use a playlist', 'start playing a playlist', 'show me a song' (implies searching existing resources), (2) Explicit creation-permitted: 'create a playlist', 'make a new list', 'add a song' (explicitly permits creation), (3) Ambiguous: clarify with supervisor before pivoting from search to creation. When search for existing resources yields no matches, report the result before attempting creation unless creation is explicitly in scope.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00140",
+      "content": "[dom-00068] In Spotify workout context, a 'suitable workout playlist' must contain enough total duration to cover the entire workout without requiring mid-workout playlist changes. Extract the target duration from the workout plan (e.g., from Simple Note), then calculate total playlist duration by summing the 'duration' field of all songs in the playlist response. Compare the total against the target before selecting a playlist for playback.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00147",
+      "content": "[dom-00071] In Spotify library cleanup context, 'keep songs in my library that are liked or downloaded' means: (1) Start with songs currently in the user's library, (2) Among those library songs, identify which are liked or downloaded, (3) Keep only those songs, (4) Remove all others. The scope of the operation is the library itself; songs that are liked or downloaded but NOT in the library are irrelevant to the cleanup task. Similarly, for albums: 'keep albums in my library that are liked or fully downloaded' means an album is kept if it exists in the library AND (is liked OR has all its songs downloaded).",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00151",
+      "content": "[dom-00071] In Spotify library cleanup context, 'keep songs and albums that are liked and downloaded' means: For songs: keep those that are liked OR downloaded (union of two sets). For albums: keep those that are liked OR fully downloaded (where fully downloaded means ALL songs in the album are downloaded). Apply OR logic (union) consistently across resource types unless task explicitly states AND logic (intersection). An album is 'fully downloaded' only if every song it contains has the 'downloaded' flag set to true.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00175",
+      "content": "[dom-00071] In Spotify context, filtering songs by release date requires extracting the year component from the release_date field (typically in ISO format like '2023-01-15') and comparing it against the target year(s). When a task specifies 'this or last year', parse the current date context to determine the target year range (e.g., if current year is 2024, filter for release_year in [2023, 2024]) before applying the comparison.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00184",
+      "content": "[dom-00071] In Venmo context, a payment request has a status field (e.g., 'approved', 'pending', 'declined') that indicates its current state. When filtering for requests in a specific state (e.g., approved requests awaiting repayment), use the status filter parameter in the API call rather than manually filtering results post-retrieval. Each payment request also contains a timestamp field (e.g., approved_at) indicating when the request reached that state; use this field to determine the most recent request when multiple requests exist for the same recipient.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00192",
+      "content": "[dom-00071] In bill-splitting tasks, the cost should be divided equally among all parties who benefited from the expense, including the person who paid. When splitting a bill among roommates, calculate: `amount_per_person = total_bill_amount / (number_of_roommates + 1)`, where the '+1' accounts for the requester. Each roommate receives a payment request for this calculated amount.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00195",
+      "content": "When splitting a shared expense (e.g., electricity bill) equally among multiple people, the cost-per-person formula is: amount_per_person = total_bill / (number_of_other_people + 1). The '+1' accounts for including the person who paid the bill in the divisor, as they are also part of the group sharing the expense.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "domain_concepts"
+    },
+    {
+      "id": "dom-00199",
+      "content": "[dom-00071] In expense-splitting context, when dividing a shared bill equally among multiple beneficiaries including the person who paid, use the formula: amount_per_person = total_bill_amount / (number_of_other_people + 1). The '+1' in the divisor is critical—it accounts for including the requester in the split, ensuring the bill is truly distributed equally among all parties who benefited. Do not use the number of other people alone as the divisor, as this will result in unequal cost distribution.",
+      "helpful": 0,
+      "harmful": 0
+    }
+  ],
+  "code_patterns": [
+    {
+      "id": "cod-00009",
+      "content": "[code-00009] Deduplication pattern for items across multiple collections: Create a dictionary keyed by item ID to store items and their metrics. As you iterate through collections, check if the item ID already exists; if it does, skip or update only if needed. After processing all collections, iterate through the deduplicated dictionary to find the maximum metric value and return the corresponding item's identifying information.",
+      "helpful": 10,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00017",
+      "content": "[cod-00017] Multi-criteria filtering with set intersection: (1) Retrieve first collection (e.g., all songs from playlists) and extract IDs into a set. (2) Retrieve second collection (e.g., liked songs) and extract IDs into another set. (3) Compute intersection: `filtered_ids = playlist_song_ids & liked_song_ids`. (4) Iterate through filtered_ids to perform operations only on items meeting all criteria.",
+      "helpful": 8,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00018",
+      "content": "[cod-00018] Set difference pattern for exclusion-based filtering: (1) Retrieve first collection (e.g., all songs in library) and extract IDs into a set. (2) Retrieve second collection (e.g., liked songs) and extract IDs into another set. (3) Compute difference: `excluded_ids = all_ids - included_ids`. (4) Iterate through excluded_ids to perform operations only on items that do NOT meet the inclusion criterion. Use this pattern when the task requires identifying items NOT in a specific category.",
+      "helpful": 3,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00019",
+      "content": "[cod-00019] State-aware conditional mutation pattern: (1) Before performing write operations on a resource, query the current state using a detail/review endpoint (e.g., show_song_reviews()). (2) Check if the resource already has the property you intend to modify (e.g., existing rating). (3) If property exists and needs updating, use the update operation (e.g., update_song_review()). (4) If property does not exist, use the create operation (e.g., review_song()). (5) This pattern prevents unnecessary API calls and ensures idempotency of mutations.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00023",
+      "content": "[cod-00022] Conditional rating update pattern: (1) Query current review state using `show_song_reviews()` filtered by current user email. (2) Extract the existing rating value from the filtered result. (3) Compare existing rating against the target rating (e.g., 4). (4) If no existing review, create with `review_song()` and target rating. (5) If existing rating is lower than target, update with `update_song_review()` to the target rating. (6) If existing rating is already at or above target, skip the update. This pattern ensures idempotent conditional mutations based on metric comparison.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00027",
+      "content": "Bi-directional participant filtering pattern for transactions: (1) Retrieve all transactions in the collection. (2) Build a set of target identifiers (e.g., roommate emails). (3) For each transaction, check if the sender email OR receiver email is in the target set. (4) Include the transaction only if either participant matches the target set. Use set membership checks rather than nested loops for efficiency.",
+      "helpful": 12,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00032",
+      "content": "[cod-00030] Bi-directional participant filtering pattern for transactions: (1) Retrieve all transactions using pagination (fetch ALL pages). (2) Build a set of target participant identifiers (e.g., sibling emails from `apis.phone.search_contacts()`). (3) For each transaction, check BOTH directions: `if transaction.sender_email in target_set or transaction.receiver_email in target_set`. (4) Apply additional filters (e.g., date matching) only to transactions that pass the participant check. (5) Perform batch operations (e.g., like_transaction) on all filtered transactions. This pattern ensures no qualifying transactions are missed due to one-directional filtering.",
+      "helpful": 11,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00034",
+      "content": "[cod-00033] Bi-directional participant filtering pattern for transactions: (1) Retrieve target participant set (e.g., coworker emails via `apis.phone.search_contacts()`). (2) Paginate through all transactions in the social feed using `while True` loop with `next_page` token. (3) For each transaction, check if `transaction.sender_email in target_set OR transaction.receiver_email in target_set`. (4) Collect all transactions meeting the bi-directional criterion into a result list. (5) This ensures no qualifying transactions are missed regardless of which direction the money flowed.",
+      "helpful": 7,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00042",
+      "content": "[cod-00024] Multi-source deduplication with schema variation handling: (1) Retrieve items from each source using pagination loops. (2) For each item, normalize it to a common schema (e.g., extract 'song_id' or 'id' field, fetch missing details like artist names). (3) Store normalized items in a dictionary keyed by unique ID. (4) After processing all sources, the dictionary automatically contains deduplicated items. (5) Iterate through the dictionary to access complete, normalized item data for final processing.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00043",
+      "content": "[cod-00025] Detail-fetching pattern for incomplete items: (1) After retrieving items from a source, check if required fields are present (e.g., 'artists' vs only 'artist_ids'). (2) Collect IDs of items missing required details. (3) Call the detail API for each incomplete item (e.g., `show_song()` to get artist names from artist_ids). (4) Merge fetched details back into the item object. (5) Proceed with final processing only when all items have complete required fields.",
+      "helpful": 9,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00047",
+      "content": "[cod-00042] Schema-aware multi-source aggregation pattern: (1) Iterate through each source API endpoint with pagination. (2) For each source, inspect the response schema—if objects contain only identifiers, store the IDs in a temporary collection. (3) After collecting all IDs from all sources, batch-fetch full object details using detail endpoints. (4) Merge results into a single keyed dictionary (keyed by unique identifier) to automatically deduplicate across sources. (5) Process the deduplicated dictionary for final output. This pattern handles sources with varying response schemas.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00048",
+      "content": "[cod-00043] Deferred detail-fetching pattern for collection endpoints: (1) When a collection endpoint (e.g., list_playlists()) returns objects with only ID fields, do not attempt to extract other fields from the response. (2) Collect all returned IDs into a list. (3) After pagination completes for the collection endpoint, iterate through the ID list and call the corresponding detail endpoint (e.g., show_song()) for each ID. (4) Merge the detailed responses into your aggregation structure. This pattern is more efficient than fetching details during pagination and handles incomplete response schemas.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00052",
+      "content": "[cod-00024] Deferred detail-fetching pattern for efficiency: (1) First, collect all unique identifiers (e.g., song IDs) from multiple sources using pagination and deduplication. (2) Then, batch-fetch complete details for items that lack required fields. (3) This approach minimizes redundant API calls and handles sources that return only IDs. Use this pattern when combining data from heterogeneous sources with varying response schemas.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00058",
+      "content": "[cod-00024] Content extraction and normalization pattern: (1) Retrieve full content from the source resource using a detail endpoint (e.g., `show_note()`). (2) Parse the content to identify lines or sections containing the required data type. (3) Extract only the required fields while filtering out metadata and descriptive text. (4) Normalize the extracted data (e.g., trim whitespace, format as comma-separated list). (5) Return the normalized output for use in downstream operations.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00061",
+      "content": "[cod-00058] Content extraction and normalization pattern for parsing structured data from unstructured text: (1) Retrieve full content via detail endpoint (e.g., show_note()). (2) Split content into lines or logical units. (3) Apply exclusion filters (e.g., skip lines starting with special characters like '#' or '-', skip lines containing metadata delimiters like ':'). (4) Apply positive filters (e.g., must start with alphabetic character). (5) Deduplicate by maintaining a set or list and checking before adding. (6) Format output as required (e.g., comma-separated string). This pattern handles metadata-rich unstructured content where target items are mixed with non-target metadata.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00064",
+      "content": "[cod-00058] Content extraction and normalization pattern for parsing unstructured note content: (1) Use `search_notes()` with query parameter to locate the relevant note. (2) Call `show_note()` with the note ID to retrieve full content. (3) Split content by lines and apply negative filters to exclude metadata markers (lines starting with '#' for headers, '-' for bullets, or containing ':' for key-value pairs). (4) Maintain a set to deduplicate extracted items during iteration. (5) Strip whitespace from each extracted item. (6) Join final results with specified delimiter (e.g., comma-separated). This pattern handles unstructured note content with mixed metadata and structured data.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00077",
+      "content": "[cod-00033] Venmo transaction filtering with bi-directional participant validation: (1) Call `show_transactions()` with direction='received' parameter to retrieve transactions where you are the receiver. (2) Extract sender_email from each transaction. (3) Create a set of authorized sender emails (e.g., roommate emails from search_contacts()). (4) Filter transactions by checking if transaction.sender_email is in the authorized set using set membership. (5) This two-step approach ensures transactions match both the direction filter AND the intended participant identity, preventing false positives from transactions received from non-target parties.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00097",
+      "content": "[cod-00024] Multi-source entity matching pattern for batch operations: (1) Extract Phase: Parse unstructured content (e.g., note lines) and filter out metadata (lines with '#', '-', ':'). Store extracted items in a list. (2) Status Phase: Query transaction history with appropriate filters (e.g., direction='received') to identify which items have already been processed. Extract identifiers (e.g., sender emails) into a set. (3) Resolution Phase: For each extracted item not in the completed set, call search_users() with the item name and extract the email from the first result. Store in a mapping dictionary. (4) Batch Write Phase: Iterate through the mapping to perform write operations (e.g., create_payment_request). (5) Verification Phase: Re-query affected resources to confirm all write operations succeeded with correct details.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00116",
+      "content": "[cod-00024] Multi-step filtering chain pattern for hierarchical data: (1) Retrieve all items from the top-level collection using pagination (e.g., all playlists). (2) For each top-level item, retrieve nested items using pagination (e.g., songs per playlist). (3) Deduplicate nested items by ID across all top-level containers using set operations. (4) For each deduplicated item, fetch complete details via detail endpoint to access fields not available in collection responses (e.g., genre from `show_song()`). (5) Filter deduplicated items by the required field (e.g., genre == 'indie'). (6) Extract secondary attributes from filtered items (e.g., artists from songs). (7) Deduplicate secondary attributes and perform batch operations. This pattern handles tasks requiring filtering through multiple hierarchical levels.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00131",
+      "content": "[cod-00024] Set union pattern for combining matches across multiple independent sources: (1) Retrieve and filter items from source 1 (e.g., library songs released ≤2021) and extract IDs into a set: `library_old = {...}`. (2) Retrieve and filter items from source 2 (e.g., playlist 1 songs released ≤2021) and extract IDs into a set: `playlist1_old = {...}`. (3) Repeat step 2 for all remaining sources (all other playlists). (4) Compute union: `all_matches = library_old | playlist1_old | playlist2_old | ...`. (5) Iterate through all_matches to apply operations to each source independently (remove from library, remove from each playlist). Use this pattern when the task requires identifying items matching criteria across multiple independent collections and applying mutations to all occurrences.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00143",
+      "content": "[cod-00024] Exhaustive playlist discovery with duration filtering: (1) Call show_playlist_library with page_limit=20 and iterate through all pages until no next_page token. (2) For each playlist, call show_playlist() and extract the 'songs' array. (3) Calculate total_duration = sum(song['duration'] for song in songs) / 60 to convert to minutes. (4) Filter playlists where total_duration >= target_duration. (5) If no suitable playlist found, proceed to search_playlists() for public alternatives before considering creation.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00148",
+      "content": "[cod-00024] Scoped filtering with multiple inclusion criteria for cleanup operations: (1) Retrieve the target collection to be modified (e.g., all songs in library). (2) Retrieve all inclusion criterion sets (e.g., liked_songs, downloaded_songs). (3) Compute the union of criteria: `criteria_union = criterion_1 ∪ criterion_2`. (4) Intersect the collection with the criteria union: `items_to_keep = collection ∩ criteria_union`. (5) Compute items to remove: `items_to_remove = collection - items_to_keep`. (6) Execute removal operations only on items_to_remove. This pattern ensures the operation scope is correctly bounded to the target collection and prevents confusion about global vs. scoped filtering.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00163",
+      "content": "[cod-00157] Atomic batch file operation pattern: When compressing directories with simultaneous deletion, use atomic API parameters (e.g., compress_directory(source_path, target_path, delete_directory=True)) to combine both operations in a single call. This ensures atomicity: either both compression and deletion succeed, or the operation fails completely without leaving orphaned resources. After the operation completes, verify the target location contains all expected compressed files and the source location contains no remaining subdirectories.",
+      "helpful": 1,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00169",
+      "content": "[cod-00025] Pagination-enrich-filter pattern for multi-criteria filtering on detail fields: (1) Use pagination to retrieve all items from a list endpoint (e.g., get_recommendations()), storing all results across pages. (2) For each item, call the detail endpoint (e.g., show_song()) to fetch complete metadata including fields required for filtering (e.g., genre, release_date). (3) Apply exact multi-criteria filtering logic on the enriched data (e.g., genre=='classical' AND release_year==2023). (4) Collect all items meeting all criteria into a result set. (5) Perform batch operations (e.g., add_songs_to_playlist()) on the filtered result set. (6) Verify the final state by querying the affected resource (e.g., show_playlist()) to confirm the number of items matches expectations.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00174",
+      "content": "[cod-00024] Playlist creation and batch population pattern: (1) Call create_playlist() with desired playlist name to obtain playlist ID. (2) Iterate through filtered song IDs in a loop, calling add_song_to_playlist() for each song with the playlist ID. (3) After batch operations complete, call show_playlist() to verify the final song count matches the number of songs added. (4) If authentication tokens expire mid-operation, re-authenticate before retry or verification steps.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00193",
+      "content": "[cod-00033] Bill extraction and splitting pattern: (1) Locate and read the bill receipt from the file system. (2) Parse the receipt content to extract the total amount (look for fields like 'Total', 'Amount Due', or similar). (3) Use `apis.phone.search_contacts(relationship='roommate')` to retrieve authoritative roommate list with email addresses. (4) Calculate per-person amount: `amount_per_person = total_amount / (len(roommates) + 1)`. (5) For each roommate, call `apis.venmo.create_payment_request(user_email=roommate_email, amount=amount_per_person, description='For electricity bill.')`. (6) Verify by querying `apis.venmo.show_sent_payment_requests()` and confirming all requests were created with correct amounts and recipients.",
+      "helpful": 2,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00196",
+      "content": "Pagination with explicit limits pattern: When retrieving lists of items (e.g., contacts, transactions, payment requests), always include an explicit `page_limit` parameter in the API call to ensure you retrieve all items in a single page or across multiple paginated calls. This prevents accidentally processing only partial results and ensures complete data collection before performing operations.",
+      "helpful": 0,
+      "harmful": 0,
+      "section": "code_patterns"
+    },
+    {
+      "id": "cod-00201",
+      "content": "[cod-00024] Numerical data extraction from unstructured file content pattern: (1) Use file_system APIs to locate and read the target file (e.g., bill receipt). (2) Parse the file content as unstructured text. (3) Search for numerical patterns or keywords associated with the target metric (e.g., 'total', 'amount due', 'bill amount'). (4) Extract the numerical value, handling currency symbols and formatting (e.g., '$123.45'). (5) Convert to a standardized numeric type for calculations. (6) Verify the extracted value is reasonable (e.g., positive, within expected range) before using it in downstream calculations.",
+      "helpful": 0,
+      "harmful": 0
+    }
+  ]
+}
