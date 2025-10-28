@@ -46,6 +46,9 @@ NUM_EPOCHS = 5
 
 # --- 2. Online Adaptation Parameters (Algorithm 2) ---
 
+ONLINE_REWARD_THRESHOLD = 0.0  # Only retry if expected reward > 0
+ONLINE_USE_ADAPTIVE_POLICY = True
+
 # (K) Max retries for a single task in online mode
 MAX_ONLINE_RETRIES = 3
 
