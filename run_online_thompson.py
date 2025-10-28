@@ -306,10 +306,6 @@ def run_batch_online_adaptation(task_ids: list):
     }
 
 
-# ============================================================
-# MAIN ENTRY POINT
-# ============================================================
-
 def main():
     """Main entry point with Thompson Sampling"""
     if len(sys.argv) < 2:

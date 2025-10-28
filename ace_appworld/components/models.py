@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field
 from typing import List, Optional, Dict
+import numpy as np
 
 """
 All data models for the ACE AppWorld system.
@@ -55,3 +56,22 @@ class CurationResult:
     """Result of curation process"""
     reasoning: str
     operations: List[CurationOperation]
+
+
+@dataclass
+class ComponentBelief:
+    """Beta distribution params for component success prob"""
+    alpha: float = 1.0
+    beta: float = 1.0
+    
+    @property
+    def mean(self):
+        return self.alpha / (self.alpha + self.beta)
+    
+    @property
+    def variance(self):
+        a, b = self.alpha, self.beta
+        return (a * b) / ((a + b) ** 2 * (a + b + 1))
+    
+    def sample(self):
+        return np.random.beta(self.alpha, self.beta)
