@@ -18,15 +18,14 @@ def run_single_task(task_id: str):
     # Initialize agent
     agent = ReActAgent(
         playbook_path=config.PLAYBOOK_PATH, 
-        use_playbook=False, 
-        enable_validation=True
+        use_playbook=False
     )
     
     # Run the agent once
     logger.info(f"Running agent for task {task_id}...")
     episode = agent.run_episode(
         task_id=task_id,
-        experiment_name=f"react_run"
+        experiment_name=f"single_run_{task_id}"
     )
     
     # Check result

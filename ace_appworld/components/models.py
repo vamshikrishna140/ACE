@@ -25,6 +25,8 @@ class Episode:
     final_answer: Optional[str] = None
     success: bool = False
     error: Optional[str] = None
+    evaluation_report: Optional[str] = None
+    metadata: Dict = field(default_factory=dict)
 
 
 @dataclass

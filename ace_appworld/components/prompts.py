@@ -75,7 +75,7 @@ def get_reflection_prompt(task_instruction: str,
                           trajectory: List[Dict],
                           final_answer: Optional[str],
                           ground_truth: Optional[Dict],
-                          execution_feedback: str,
+                          evaluation_report: str,
                           playbook_bullets: Optional[List[Dict]] = None) -> str:
     """
     Build reflection prompt for trajectory analysis
@@ -131,7 +131,7 @@ GROUND_TRUTH_CODE_END
 
 Test report (unit tests result for the task after the generated code was run):
 TEST_REPORT_START
-{execution_feedback}
+{evaluation_report}
 TEST_REPORT_END
 
 ACE playbook (playbook that's used by model for code generation):
@@ -209,10 +209,10 @@ def get_curation_prompt(task_context: str,
     
     prompt += f"""
 **Reflection Analysis:**
-- Error: {reflection_result.get('error_identification', '')}
-- Root Cause: {reflection_result.get('root_cause_analysis', '')}
-- Correct Approach: {reflection_result.get('correct_approach', '')}
-- Key Insight: {reflection_result.get('key_insight', '')}
+- Error: {reflection_result.error_identification}
+- Root Cause: {reflection_result.root_cause_analysis}
+- Correct Approach: {reflection_result.correct_approach}
+- Key Insight: {reflection_result.key_insight}
 
 ---
 

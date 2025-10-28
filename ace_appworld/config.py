@@ -42,6 +42,7 @@ REFLECTION_OUTPUT_DIR = OUTPUT_DIR / "reflections"
 TRACE_OUTPUT_DIR.mkdir(exist_ok=True)
 REFLECTION_OUTPUT_DIR.mkdir(exist_ok=True)
 
+NUM_EPOCHS = 5
 
 # --- 2. Online Adaptation Parameters (Algorithm 2) ---
 

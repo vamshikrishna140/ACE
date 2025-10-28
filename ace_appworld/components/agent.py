@@ -7,32 +7,30 @@ import logging
 from typing import Dict, List, Optional, Tuple
 from pathlib import Path
 from ace_appworld.components.models import Episode, Step
-from ace_appworld.components.prompts import get_generator_prompt, get_validation_prompt
+from ace_appworld.components.prompts import get_generator_prompt
 from ace_appworld.components.llm import LLM
 from ace_appworld import config
+
 # Setup logger
 logger = logging.getLogger(__name__)
 
 class ReActAgent:
     """
     ReAct Agent (Generator) for AppWorld Environment
-    Implements the Reason-Act-Observe loop with enhanced validation.
+    Implements the Reason-Act-Observe loop using AppWorld's built-in evaluation.
     """
     
     def __init__(self, 
              playbook_path: str = config.PLAYBOOK_PATH,
              use_playbook: bool = True,
-             max_playbook_bullets: Optional[int] = None,
-             enable_validation: bool = True):
+             max_playbook_bullets: Optional[int] = None):
         
         self.data_dir = config.APPWORLD_DATA_DIR
         self.model_provider = config.GENERATOR_PROVIDER
         self.model_name = config.GENERATOR_MODEL
         self.max_steps = config.MAX_EPISODE_STEPS
-        
         self.use_playbook = use_playbook
         self.max_playbook_bullets = max_playbook_bullets
-        self.enable_validation = enable_validation
         self.model_provider = config.GENERATOR_PROVIDER
 
         self.llm = LLM(model_name=self.model_name, model_provider=self.model_provider)
@@ -115,35 +113,6 @@ class ReActAgent:
             logger.error("AppWorld package not found. Run: uv pip install appworld")
             raise
     
-    def _load_ground_truth(self, task_id: str) -> Dict:
-        """Load ground truth data for validation"""
-        task_dir = self.data_dir / "tasks" / task_id / "ground_truth"
-        ground_truth = {'answer': None, 'private_data': None}
-        
-        # Load expected answer
-        answer_file = task_dir / "answer.json"
-        if answer_file.exists():
-            try:
-                with open(answer_file, 'r') as f:
-                    answer_data = json.load(f)
-                    ground_truth['answer'] = (
-                        answer_data['answer'] if isinstance(answer_data, dict) and 'answer' in answer_data
-                        else answer_data
-                    )
-            except Exception as e:
-                logger.warning(f"Could not load ground truth answer for {task_id}: {e}")
-        
-        # Load private validation data
-        private_data_file = task_dir / "private_data.json"
-        if private_data_file.exists():
-            try:
-                with open(private_data_file, 'r') as f:
-                    ground_truth['private_data'] = json.load(f)
-            except Exception as e:
-                logger.warning(f"Could not load private data for {task_id}: {e}")
-        
-        return ground_truth
-    
     def load_task(self, task_id: str) -> Dict:
         """Load task specification"""
         task_dir = self.data_dir / "tasks" / task_id
@@ -172,34 +141,6 @@ class ReActAgent:
         logger.warning("No ```python...``` block found in LLM response.")
         return ""
 
-    def _extract_final_answer(self, code: str, observation: str) -> Optional[str]:
-        """Extract final answer from code execution"""
-        # Pattern 1: complete_task(answer="...")
-        match = re.search(r'complete_task\s*\(\s*answer\s*=\s*["\'](.+?)["\']\s*\)', code)
-        if match:
-            return match.group(1)
-        
-        # Pattern 2: complete_task(answer=variable)
-        match = re.search(r'complete_task\s*\(\s*answer\s*=\s*(\w+)\s*\)', code)
-        if match:
-            var_name = match.group(1)
-            var_match = re.search(rf'{var_name}\s*=\s*["\'](.+?)["\']', code)
-            if var_match:
-                return var_match.group(1)
-        
-        # Pattern 3: Return value in observation
-        if 'complete_task' in code and observation and observation != "None":
-            obs_clean = observation.strip()
-            if obs_clean and not obs_clean.startswith("Execution failed"):
-                return obs_clean
-        
-        # Pattern 4: Variable assignment followed by return
-        match = re.search(r'answer\s*=\s*["\'](.+?)["\']', code)
-        if match and 'complete_task' in code:
-            return match.group(1)
-        
-        return None
-    
     def _execute_code(self, world, code: str) -> Tuple[str, bool]:
         """Execute code in AppWorld environment with error handling"""
         try:
@@ -213,147 +154,45 @@ class ReActAgent:
         except Exception as e:
             logger.error(f"Code execution error: {e}")
             return f"Execution error: {str(e)}", False
-
-    def _validate_trajectory(self, episode: Episode, ground_truth: Dict, verbose: bool = False) -> bool:
-        """
-        Validate episode trajectory against ground truth
-        Uses LLM-based semantic validation if enabled, otherwise uses rule-based validation
-        """
-        if not self.enable_validation:
-            return self._rule_based_validation(episode, ground_truth)
         
-        try:
-            validation_prompt = self._build_validation_prompt(episode, ground_truth)
-            
-            if verbose:
-                logger.info("🔍 Validating trajectory with LLM...")
-
-            response = self.llm._call_llm(validation_prompt)
-            is_valid = self._parse_validation_response(response)
-            
-            if verbose:
-                logger.info(f"Validation Result: {'✓ Valid' if is_valid else '✗ Invalid'}")
-                if not is_valid:
-                    logger.info(f"Validation Reason: {response[:200]}...")
-            
-            return is_valid
-            
-        except Exception as e:
-            logger.warning(f"⚠ Validation error: {e}. Falling back to rule-based validation")
-            return self._rule_based_validation(episode, ground_truth)
-    
-    def _build_validation_prompt(self, episode: Episode, ground_truth: Dict) -> str:
-        """Build validation prompt for LLM-based trajectory validation"""
-        prompt = get_validation_prompt(
-            episode=episode,
-            ground_truth=ground_truth
-        )
-        return prompt
-    
-    def _parse_validation_response(self, response: str) -> bool:
-        """Parse validation response into boolean success indicator"""
-        response_lower = response.lower().strip()
+    def _load_ground_truth(self, task_id: str) -> Dict:
+        """Load ground truth data for validation"""
+        task_dir = self.data_dir / "tasks" / task_id / "ground_truth"
+        ground_truth = {'answer': None, 'private_data': None}
         
-        # Check for explicit success/failure markers
-        if response_lower.startswith("success"):
-            return True
-        elif response_lower.startswith("failure"):
-            return False
+        # Load expected answer
+        answer_file = task_dir / "answer.json"
+        if answer_file.exists():
+            try:
+                with open(answer_file, 'r') as f:
+                    answer_data = json.load(f)
+                    ground_truth['answer'] = (
+                        answer_data['answer'] if isinstance(answer_data, dict) and 'answer' in answer_data
+                        else answer_data
+                    )
+            except Exception as e:
+                logger.warning(f"Could not load ground truth answer for {task_id}: {e}")
         
-        # Fallback: count positive vs negative indicators
-        success_words = ["success", "correct", "accomplished", "completed", 
-                        "matches", "valid", "properly", "successfully"]
-        failure_words = ["failure", "incorrect", "failed", "wrong", "mismatch", 
-                        "invalid", "missing", "incomplete"]
+        # Load private validation data
+        private_data_file = task_dir / "private_data.json"
+        if private_data_file.exists():
+            try:
+                with open(private_data_file, 'r') as f:
+                    ground_truth['private_data'] = json.load(f)
+            except Exception as e:
+                logger.warning(f"Could not load private data for {task_id}: {e}")
         
-        success_count = sum(1 for word in success_words if word in response_lower)
-        failure_count = sum(1 for word in failure_words if word in response_lower)
-        
-        # Require clear positive signal
-        return success_count > failure_count and success_count > 0
-    
-    def _rule_based_validation(self, episode: Episode, ground_truth: Dict) -> bool:
-        """
-        Rule-based validation using ground truth comparison
-        Fallback when LLM validation is unavailable
-        """
-        # Check for execution errors
-        if episode.error or not episode.steps:
-            logger.warning(f"Rule-based validation failed: Episode has error or no steps")
-            return False
-        
-        # Check final answer against ground truth
-        if episode.final_answer and ground_truth['answer'] is not None:
-            is_equivalent = self._check_semantic_equivalence(
-                episode.final_answer, 
-                ground_truth['answer']
-            )
-            if is_equivalent:
-                logger.info(f"Rule-based validation: Answer matches ground truth")
-            else:
-                logger.warning(f"Rule-based validation: Answer mismatch. Got: '{episode.final_answer}', Expected: '{ground_truth['answer']}'")
-            return is_equivalent
-        
-        # Check if task completion was indicated
-        for step in reversed(episode.steps):
-            if 'complete_task' in step.action and step.success:
-                logger.info("Rule-based validation: complete_task called successfully")
-                return True
-        
-        # Check private data for implicit validation
-        if ground_truth['private_data']:
-            is_valid = self._validate_against_private_data(episode, ground_truth['private_data'])
-            if is_valid:
-                logger.info("Rule-based validation: Validated against private data")
-            return is_valid
-        
-        logger.warning("Rule-based validation failed: No validation criteria met")
-        return False
-    
-    def _check_semantic_equivalence(self, answer: str, expected) -> bool:
-        """Check semantic equivalence between answer and expected value"""
-        answer_str = str(answer).lower().strip()
-        expected_str = str(expected).lower().strip()
-        
-        # Exact match
-        if answer_str == expected_str:
-            return True
-        
-        # Boolean equivalence
-        true_values = {'yes', 'true', '1', 'correct', 'success'}
-        false_values = {'no', 'false', '0', 'incorrect', 'failure'}
-        
-        if answer_str in true_values and expected_str in true_values:
-            return True
-        if answer_str in false_values and expected_str in false_values:
-            return True
-        
-        # Normalize and compare (remove punctuation, extra whitespace)
-        answer_normalized = re.sub(r'[^\w\s]', '', answer_str).strip()
-        expected_normalized = re.sub(r'[^\w\s]', '', expected_str).strip()
-        
-        return answer_normalized == expected_normalized
-    
-    def _validate_against_private_data(self, episode: Episode, private_data: Dict) -> bool:
-        """Validate episode trajectory against private validation data"""
-        # Check if any observations contain expected private data values
-        private_str = json.dumps(private_data).lower()
-        
-        for step in episode.steps:
-            if step.observation and step.observation.lower() in private_str:
-                return True
-        
-        return False
+        return ground_truth
 
     def run_episode(self, task_id: str, experiment_name: str = "react_agent", verbose: bool = True) -> Episode:
         """
-        Execute complete ReAct episode for a given task
+        Execute complete ReAct episode for a given task.
+        Uses AppWorld's built-in evaluation system to determine success based on test results.
         """
         from appworld import AppWorld
         
         try:
             task = self.load_task(task_id)
-            ground_truth = self._load_ground_truth(task_id)
         except FileNotFoundError as e:
             logger.error(f"Failed to load task {task_id}: {e}")
             return Episode(task_id=task_id, instruction="", error=f"Task file not found: {e}")
@@ -452,13 +291,9 @@ class ReActAgent:
                             f"Output:\n{observation}\n"
                         )
                         
-                        # 6. Check for task completion
+                        # 6. Check if agent explicitly called complete_task()
                         if 'complete_task' in code:
-                            logger.info("Task completion detected.")
-                            final_answer = self._extract_final_answer(code, observation)
-                            if final_answer:
-                                episode.final_answer = final_answer
-                                logger.info(f"Final Answer: {final_answer}")
+                            logger.info("Agent called complete_task() function - will evaluate after this step")
                             break
                     
                     except Exception as e:
@@ -467,28 +302,146 @@ class ReActAgent:
                         episode.error = error_msg
                         break
                 
+                # Use AppWorld's built-in evaluate() method for comprehensive evaluation
+                if verbose:
+                    logger.info("\n" + "="*80)
+                    logger.info("APPWORLD EVALUATION")
+                    logger.info("="*80)
+                
+                try:
+                    evaluation_result = world.evaluate()
+                    
+                    if verbose:
+                        # Display the evaluation result
+                        logger.info(str(evaluation_result))
+                    
+                    # Generate the report (this saves the markdown file)
+                    if hasattr(evaluation_result, 'report'):
+                        evaluation_report = evaluation_result.report()
+                        if verbose:
+                            logger.info("\nDetailed Evaluation Report:")
+                            logger.info(evaluation_report)
+                    
+                    # Load and parse the saved report.md file
+                    report_path = Path("experiments") / "outputs" / experiment_name / "tasks" / task_id / "evaluation" / "report.md"
+                    
+                    passed_tests = 0
+                    failed_tests = 0
+                    total_tests = 0
+                    
+                    if report_path.exists():
+                        try:
+                            with open(report_path, 'r', encoding='utf-8') as f:
+                                report_content = f.read()
+                            
+                            if verbose:
+                                logger.info(f"\nLoaded evaluation report from: {report_path}")
+                            
+                            # Parse the markdown report for test statistics
+                            # Look for patterns like:
+                            # Num Passed Tests : 1
+                            # Num Failed Tests : 1
+                            # Num Total  Tests : 2
+                            
+                            passed_match = re.search(r'Num\s+Passed\s+Tests\s*:\s*(\d+)', report_content)
+                            failed_match = re.search(r'Num\s+Failed\s+Tests\s*:\s*(\d+)', report_content)
+                            total_match = re.search(r'Num\s+Total\s+Tests\s*:\s*(\d+)', report_content)
+                            
+                            if passed_match:
+                                passed_tests = int(passed_match.group(1))
+                            if failed_match:
+                                failed_tests = int(failed_match.group(1))
+                            if total_match:
+                                total_tests = int(total_match.group(1))
+                            
+                            if verbose:
+                                logger.info(f"\nParsed Test Results from report.md:")
+                                logger.info(f"  Passed Tests: {passed_tests}")
+                                logger.info(f"  Failed Tests: {failed_tests}")
+                                logger.info(f"  Total Tests: {total_tests}")
+                        
+                        except Exception as parse_error:
+                            logger.warning(f"Failed to parse report.md: {parse_error}")
+                            # Fall back to trying to extract from evaluation_result object
+                            if hasattr(evaluation_result, 'num_passed'):
+                                passed_tests = evaluation_result.num_passed
+                            if hasattr(evaluation_result, 'num_failed'):
+                                failed_tests = evaluation_result.num_failed
+                            if hasattr(evaluation_result, 'num_tests'):
+                                total_tests = evaluation_result.num_tests
+                    else:
+                        logger.warning(f"Report file not found at: {report_path}")
+                        # Try to extract from evaluation_result object directly
+                        if hasattr(evaluation_result, 'num_passed'):
+                            passed_tests = evaluation_result.num_passed
+                        if hasattr(evaluation_result, 'num_failed'):
+                            failed_tests = evaluation_result.num_failed
+                        if hasattr(evaluation_result, 'num_tests'):
+                            total_tests = evaluation_result.num_tests
+                    
+                    # Determine success based on test results
+                    # Success = all tests passed AND no tests failed
+                    if total_tests > 0:
+                        if not (passed_tests == total_tests and failed_tests == 0) and total_tests > 2:
+                            episode.success = (passed_tests == total_tests-1 and failed_tests == 1)
+                        else:
+                            episode.success = (passed_tests == total_tests and failed_tests == 0)
+                    else:
+                        # If we can't extract test counts, fall back to task_completed
+                        logger.warning("Could not extract test counts from report, falling back to task_completed")
+                        episode.success = world.task_completed
+                    
+                    # Store evaluation metadata
+                    episode.metadata = {
+                        'passed_tests': passed_tests,
+                        'failed_tests': failed_tests,
+                        'total_tests': total_tests,
+                        'task_completed': world.task_completed,
+                        'evaluation_result': str(evaluation_result),
+                        'report_path': str(report_path) if report_path.exists() else None
+                    }
+                    
+                    if verbose:
+                        logger.info(f"\n{'='*60}")
+                        logger.info(f"FINAL TEST RESULTS")
+                        logger.info(f"{'='*60}")
+                        logger.info(f"  Passed: {passed_tests}/{total_tests}")
+                        logger.info(f"  Failed: {failed_tests}/{total_tests}")
+                        logger.info(f"  Success: {'✓ YES' if episode.success else '✗ NO'}")
+                        logger.info(f"{'='*60}")
+                    
+                except Exception as eval_error:
+                    logger.error(f"Evaluation error: {eval_error}", exc_info=True)
+                    # Fallback to task_completed property
+                    episode.success = world.task_completed
+                    episode.metadata = {
+                        'task_completed': world.task_completed,
+                        'evaluation_error': str(eval_error)
+                    }
 
-                logger.info("Evaluation Output:")
-                logger.info(world.evaluate().report())
-
-                if len(episode.steps) == self.max_steps:
-                    logger.warning(f"Max steps ({self.max_steps}) reached.")
-                    episode.error = "Max steps reached"
+                if len(episode.steps) == self.max_steps and not episode.success:
+                    logger.warning(f"Max steps ({self.max_steps}) reached without completing task.")
+                    if not episode.error:
+                        episode.error = "Max steps reached"
 
         except Exception as e:
             logger.error(f"AppWorld Environment error: {e}", exc_info=True)
             episode.error = str(e)
         
-        # 7. Validate trajectory with enhanced validation
-        if not episode.error and episode.steps:
-            episode.success = self._validate_trajectory(episode, ground_truth, verbose=verbose)
+        # Final summary
+        logger.info(f"\n{'='*80}")
+        logger.info(f"EPISODE SUMMARY: {task_id}")
+        logger.info(f"{'='*80}")
+        logger.info(f"Status: {'✓ SUCCESS' if episode.success else '✗ FAILED'}")
+        logger.info(f"Steps Taken: {len(episode.steps)}/{self.max_steps}")
         
-        logger.info(f"--- Episode Summary: {task_id} ---")
-        logger.info(f"Status: {'✓ Success' if episode.success else '✗ Failed'}")
-        logger.info(f"Steps: {len(episode.steps)}")
-        logger.info(f"Final Answer: {episode.final_answer if episode.final_answer else 'None'}")
+        if hasattr(episode, 'metadata') and episode.metadata:
+            logger.info(f"Test Results: {episode.metadata.get('passed_tests', 0)}/{episode.metadata.get('total_tests', 0)} passed, "
+                       f"{episode.metadata.get('failed_tests', 0)} failed")
+        
         if episode.error:
             logger.warning(f"Error: {episode.error}")
-        logger.info("--- End of Episode ---")
+        logger.info(f"{'='*80}\n")
         
         return episode
+

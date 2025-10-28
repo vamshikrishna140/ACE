@@ -32,7 +32,7 @@ class Reflector:
                                  trajectory: List[Dict],
                                  final_answer: Optional[str],
                                  ground_truth: Optional[Dict],
-                                 execution_feedback: str,
+                                 evaluation_report: Optional[str] = None, 
                                  playbook_bullets: Optional[List[Dict]] = None) -> str:
         """
         Build reflection prompt for trajectory analysis (using paper's exact prompt)
@@ -42,7 +42,7 @@ class Reflector:
             trajectory=trajectory,
             final_answer=final_answer,
             ground_truth=ground_truth,
-            execution_feedback=execution_feedback,
+            evaluation_report=evaluation_report,
             playbook_bullets=playbook_bullets
         )
         
@@ -74,8 +74,8 @@ class Reflector:
                 trajectory: List[Dict],
                 final_answer: Optional[str] = None,
                 ground_truth: Optional[Dict] = None,
-                execution_feedback: str = "",
-                playbook_bullets: Optional[List[Dict]] = None) -> ReflectionResult:
+                playbook_bullets: Optional[List[Dict]] = None,
+                evaluation_report: Optional[str] = None) -> ReflectionResult:
         """
         Perform reflection on agent trajectory
         """
@@ -83,7 +83,7 @@ class Reflector:
         
         # --- Run reflection (potentially with refinement) ---
         reflections = []
-        augmented_feedback = execution_feedback
+        augmented_feedback = ""
         
         for round_num in range(self.max_refinement_rounds):
             logger.debug(f"Reflection round {round_num + 1}/{self.max_refinement_rounds}")
@@ -93,7 +93,7 @@ class Reflector:
                 trajectory=trajectory,
                 final_answer=final_answer,
                 ground_truth=ground_truth,
-                execution_feedback=augmented_feedback,
+                evaluation_report=evaluation_report,
                 playbook_bullets=playbook_bullets
             )
             

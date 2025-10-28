@@ -29,7 +29,7 @@ def run_online_loop(task_id: str):
     reflector = Reflector()
     
     # Instantiate agent once, we will update its playbook if needed
-    agent = ReActAgent(playbook_path=config.PLAYBOOK_PATH, use_playbook=True, enable_validation=True)
+    agent = ReActAgent(playbook_path=config.PLAYBOOK_PATH, use_playbook=True)
     
     for attempt in range(config.MAX_ONLINE_RETRIES):
         logger.info(f"--- Attempt {attempt + 1}/{config.MAX_ONLINE_RETRIES} for Task {task_id} ---")
@@ -45,7 +45,7 @@ def run_online_loop(task_id: str):
         # 2. Run the Agent (Generate(t, P))
         episode = agent.run_episode(
             task_id=task_id,
-            experiment_name=f"online_run"
+            experiment_name=f"online_attempt_{task_id}_{attempt+1}"
         )
         
         # 3. Check for Success
@@ -84,8 +84,8 @@ def run_online_loop(task_id: str):
                 trajectory=[s.__dict__ for s in episode.steps],
                 final_answer=episode.final_answer,
                 ground_truth=ground_truth,
-                execution_feedback=execution_feedback,
-                playbook_bullets=playbook_bullets
+                playbook_bullets=playbook_bullets, 
+                evaluation_report=episode.evaluation_report
             )
         except Exception as e:
             logger.error(f"Reflection failed: {e}. Stopping retries for this task.", exc_info=True)

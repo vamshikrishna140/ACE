@@ -60,7 +60,7 @@ class Curator:
         prompt = get_curation_prompt(
             task_context=task_context,
             current_playbook=current_playbook,
-            reflection=reflection
+            reflection_result=reflection
         )
         return prompt
 
