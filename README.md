@@ -300,10 +300,10 @@ Iterates through all **13,101 tasks** in the AppWorld training set, updating `pl
 > ⚠️ **Caution:** This is a long-running process meant for creating the master playbook.
 
 ```bash
-python run_offline.py
+uv run run_offline.py
 
 # Optional: Start from a specific task index
-python run_offline.py --start_from 100
+uv run run_offline.py --start_from 100
 ```
 
 ### 2. Online Adaptation – *Algorithm 2: Single Task Retry*
@@ -311,10 +311,10 @@ python run_offline.py --start_from 100
 Runs a specific task using the existing playbook. If the task fails, the Reflector critiques it, updates the playbook, and retries until success or until the retry limit is reached.
 
 ```bash
-python run_online.py <task_id>
+uv run run_online.py <task_id>
 
 # Example:
-python run_online.py b0a8eae_3
+uv run run_online.py b0a8eae_3
 ```
 
 ### 3. Thompson Sampling-Enhanced Online Adaptation – *Intelligent Retry Decisions*
@@ -324,20 +324,20 @@ Uses Bayesian learning to make smarter retry decisions based on component reliab
 #### Single Task Mode
 
 ```bash
-python run_online_thompson.py <task_id>
+uv run run_online_thompson.py <task_id>
 
 # Example:
-python run_online_thompson.py b0a8eae_3
+uv run run_online_thompson.py b0a8eae_3
 ```
 
 #### Multiple Tasks (Batch Mode with Shared Learning)
 
 ```bash
 # Process multiple tasks with shared learning
-python run_online_thompson.py task1 task2 task3
+uv run run_online_thompson.py task1 task2 task3
 
 # Or from a file (one task per line)
-python run_online_thompson.py --batch task_list.txt
+uv run run_online_thompson.py --batch task_list.txt
 ```
 
 **Batch mode benefits:**
@@ -390,10 +390,10 @@ Learned component reliabilities:
 Runs a single task once without any learning or retry logic.
 
 ```bash
-python run_react.py <task_id>
+uv run run_react.py <task_id>
 
 # Example:
-python run_react.py b0a8eae_3
+uv run run_react.py b0a8eae_3
 ```
 
 ---
