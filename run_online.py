@@ -129,10 +129,10 @@ def main():
     Expects a single task_id as a command-line argument.
     """
     if len(sys.argv) < 2:
-        print("Usage: python run_online.py <task_id>")
+        print("Usage: uv run_online.py <task_id>")
         print("\nThis script runs a single task with an online 'retry-on-failure' loop (Algorithm 2).")
         print("Example:")
-        print("  python run_online.py b0a8eae_3")
+        print("  uv run_online.py b0a8eae_3")
         sys.exit(1)
         
     task_id = sys.argv[1]

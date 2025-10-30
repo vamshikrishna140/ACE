@@ -309,16 +309,16 @@ def run_batch_online_adaptation(task_ids: list):
 def main():
     """Main entry point with Thompson Sampling"""
     if len(sys.argv) < 2:
-        print("Usage: python run_online_thompson.py <task_id> [task_id2 ...]")
-        print("   or: python run_online_thompson.py --batch <task_list_file>")
+        print("Usage: uv run_online_thompson.py <task_id> [task_id2 ...]")
+        print("   or: uv run_online_thompson.py --batch <task_list_file>")
         print("\nRuns online adaptation with Thompson Sampling for retry decisions.")
         print("\nExamples:")
         print("  Single task:")
-        print("    python run_online_thompson.py b0a8eae_3")
+        print("    uv run_online_thompson.py b0a8eae_3")
         print("\n  Multiple tasks:")
-        print("    python run_online_thompson.py task1 task2 task3")
+        print("    uv run_online_thompson.py task1 task2 task3")
         print("\n  Batch from file:")
-        print("    python run_online_thompson.py --batch tasks.txt")
+        print("    uv run_online_thompson.py --batch tasks.txt")
         sys.exit(1)
     
     # Parse arguments

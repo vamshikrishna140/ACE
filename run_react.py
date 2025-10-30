@@ -48,10 +48,10 @@ def main():
     Expects a single task_id as a command-line argument.
     """
     if len(sys.argv) < 2:
-        print("Usage: python run_react.py <task_id>")
+        print("Usage: uv run_react.py <task_id>")
         print("\nThis script runs a single task with the ReAct agent once.")
         print("Example:")
-        print("  python run_react.py b0a8eae_3")
+        print("  uv run_react.py b0a8eae_3")
         sys.exit(1)
         
     task_id = sys.argv[1]
