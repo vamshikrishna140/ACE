@@ -362,27 +362,27 @@ Thompson Sampling Decision (attempt 2)
 # After task completion:
 Thompson Sampling Summary
 ==========================
-Total tasks: 15
-Success rate: 12/15
+Total tasks: 10
+Success rate: 9/10
 
 Learned component reliabilities:
   Playbook:
-    Mean reliability: 0.721
-    Uncertainty (var): 0.012
-    Beta(12.45, 4.83)
-    Based on 15 observations
+    Mean reliability: 0.804
+    Uncertainty (var): 0.014
+    Beta(8.22, 2.00)
+    Based on 8 observations
 
   Reflector:
-    Mean reliability: 0.658
-    Uncertainty (var): 0.018
-    Beta(8.23, 4.28)
-    Based on 10 observations
+    Mean reliability: 0.716
+    Uncertainty (var): 0.0449
+    Beta(2.52, 1.00)
+    Based on 2 observations
 
   Curator:
-    Mean reliability: 0.612
-    Uncertainty (var): 0.021
-    Beta(7.14, 4.52)
-    Based on 9 observations
+    Mean reliability: 0.557
+    Uncertainty (var): 0.0758
+    Beta(1.26, 1.00)
+    Based on 0 observations
 ```
 
 ### 4. Simple React Agent – *No Adaptation*
