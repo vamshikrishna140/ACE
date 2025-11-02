@@ -157,16 +157,16 @@ class ThompsonSamplingPolicy:
             logger.info(f"  Credit weights: playbook={weights['playbook']:.3f}, "
                        f"reflector={weights['reflector']:.3f}, curator={weights['curator']:.3f}")
             
-            # Fractional updates based on credit
+            # Weighted updates based on credit
             self.playbook.alpha += weights['playbook']
-            self.playbook.beta += (1 - weights['playbook'])
+            # self.playbook.beta += (1 - weights['playbook']) (For Fractional updates)
             
             if attempt_num >= 2:
                 self.reflector.alpha += weights['reflector']
-                self.reflector.beta += (1 - weights['reflector'])
+                # self.reflector.beta += (1 - weights['reflector']) (For Fractional updates)
                 
                 self.curator.alpha += weights['curator']
-                self.curator.beta += (1 - weights['curator'])
+                # self.curator.beta += (1 - weights['curator']) (For Fractional updates)
                 
         else:
             logger.info(f"Belief update: FAILURE after {attempt_num} attempts")
