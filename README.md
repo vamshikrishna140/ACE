@@ -1,6 +1,6 @@
 # 🤖 ACE Framework for AppWorld
 
-The **Agent-Critic-Executor (ACE)** framework implements the learning architecture described in the research paper, utilizing the **AppWorld** dataset for autonomous task execution and adaptation.
+The **Agent Context Engineering (ACE)** framework implements the learning architecture described in the research paper, utilizing the **AppWorld** dataset for autonomous task execution and adaptation.
 
 This project supports three primary operational modes:
 
